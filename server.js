@@ -62,16 +62,18 @@ const creditRoutes = require('./src/routes/credit');
 const whatsappRoutes = require('./src/routes/whatsapp');
 const userRoutes = require('./src/routes/user');
 const irrigationRoutes = require('./src/routes/irrigation');
-const customDataRoutes = require('./src/routes/custom-data');
+        const customDataRoutes = require('./src/routes/custom-data');
+        const schemesRoutes = require('./src/routes/schemes');
 
-// Routes
-app.use('/api/ai', aiRoutes);
-app.use('/api/market', marketRoutes);
-app.use('/api/credit', creditRoutes);
-app.use('/api/whatsapp', whatsappRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/irrigation', irrigationRoutes);
-app.use('/api/custom-data', customDataRoutes);
+        // Routes
+        app.use('/api/ai', aiRoutes);
+        app.use('/api/market', marketRoutes);
+        app.use('/api/credit', creditRoutes);
+        app.use('/api/whatsapp', whatsappRoutes);
+        app.use('/api/user', userRoutes);
+        app.use('/api/irrigation', irrigationRoutes);
+        app.use('/api/custom-data', customDataRoutes);
+        app.use('/api/schemes', schemesRoutes);
 
 // Socket.IO for real-time chat and notifications
 io.on('connection', (socket) => {

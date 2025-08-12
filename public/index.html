@@ -126,22 +126,22 @@
 
                     <!-- Government Schemes -->
                     <div class="schemes-widget">
-                        <h3><i class="fas fa-brain"></i> AI Crop Intelligence</h3>
+                        <h3><i class="fas fa-landmark"></i> Government Schemes</h3>
                         <div class="schemes-list">
                             <div class="scheme-item">
-                                <i class="fas fa-robot"></i>
-                                <span>Precision Recommendations</span>
+                                <i class="fas fa-rupee-sign"></i>
+                                <span>PM-KISAN: ₹6,000/year</span>
                             </div>
                             <div class="scheme-item">
-                                <i class="fas fa-chart-area"></i>
-                                <span>Yield Optimization: +35%</span>
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Crop Insurance (PMFBY)</span>
                             </div>
                             <div class="scheme-item">
-                                <i class="fas fa-satellite-dish"></i>
-                                <span>Satellite Monitoring</span>
+                                <i class="fas fa-credit-card"></i>
+                                <span>Kisan Credit Card</span>
                             </div>
                         </div>
-                        <button class="weather-details-btn" onclick="kisanAI.getCropIntelligence()">Get AI Analysis</button>
+                        <button class="weather-details-btn" onclick="showSchemesChat()">Discover Schemes</button>
                     </div>
                 </div>
             </section>
@@ -380,6 +380,57 @@
                 </div>
             </section>
             
+            <!-- Government Schemes Chat Section -->
+            <section id="schemes-chat-section" class="schemes-chat-section" style="display: none;">
+                <div class="chat-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>🏛️ Government Schemes Assistant</h3>
+                    <div class="chat-actions">
+                        <button id="schemes-voice-btn" class="voice-btn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="schemes-chat-messages" id="schemes-chat-messages">
+                    <div class="message ai-message">
+                        <div class="message-avatar">🏛️</div>
+                        <div class="message-content">
+                            <p>नमस्ते! मैं आपको सरकारी योजनाओं और वित्तीय सहायता के बारे में मदद करूंगा। कृपया मुझे बताएं:</p>
+                            <ul>
+                                <li>आपकी उम्र क्या है?</li>
+                                <li>आप कहाँ रहते हैं?</li>
+                                <li>आपके पास कितनी जमीन है?</li>
+                                <li>क्या आपको कर्ज की जरूरत है?</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="schemes-chat-input-container">
+                    <div class="schemes-chat-input-wrapper">
+                        <input type="text" id="schemes-chat-input" placeholder="अपनी जानकारी यहाँ लिखें..." class="schemes-chat-input">
+                        <button id="schemes-voice-input-btn" class="voice-input-btn" title="Voice Input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="schemes-send-btn" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Schemes Display -->
+                <div id="schemes-display" class="schemes-display" style="display: none;">
+                    <h4>📋 Recommended Schemes</h4>
+                    <div id="schemes-list" class="schemes-list-container"></div>
+                    
+                    <h4>💰 Financial Options</h4>
+                    <div id="financial-options" class="financial-options-container"></div>
+                </div>
+            </section>
+
             <!-- Custom Data Section -->
             <section id="custom-data-section" class="custom-data-section" style="display: none;">
                 <div class="section-header">
@@ -479,6 +530,10 @@
             <button class="nav-btn" data-section="irrigation">
                 <i class="fas fa-tint"></i>
                 <span>Water</span>
+            </button>
+            <button class="nav-btn" data-section="schemes-chat">
+                <i class="fas fa-landmark"></i>
+                <span>Schemes</span>
             </button>
         </nav>
     </div>

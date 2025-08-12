@@ -110,6 +110,16 @@ class KisanAI {
             });
         }
 
+        // Schemes Chat input
+        const schemesChatInput = document.getElementById('schemes-chat-input');
+        const schemesSendBtn = document.getElementById('schemes-send-btn');
+        if (schemesChatInput && schemesSendBtn) {
+            schemesSendBtn.addEventListener('click', () => this.sendSchemesMessage());
+            schemesChatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.sendSchemesMessage();
+            });
+        }
+
         // Profile button
         const profileBtn = document.getElementById('profile-btn');
         if (profileBtn) {
@@ -736,6 +746,127 @@ class KisanAI {
         }
     }
 
+    // Schemes Chat Methods
+    async sendSchemesMessage() {
+        const input = document.getElementById('schemes-chat-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message to chat
+        this.addSchemesMessage('user', message);
+        input.value = '';
+        
+        try {
+            const response = await fetch('/api/schemes/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    language: this.currentLanguage || 'en',
+                    conversationHistory: this.schemesConversationHistory || []
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Add AI response to chat
+                this.addSchemesMessage('ai', data.response);
+                
+                // Update conversation history
+                if (!this.schemesConversationHistory) this.schemesConversationHistory = [];
+                this.schemesConversationHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'ai', content: data.response }
+                );
+                
+                // Display relevant schemes and financial options
+                if (data.relevantSchemes && data.relevantSchemes.length > 0) {
+                    this.displaySchemes(data.relevantSchemes);
+                }
+                
+                if (data.relevantFinancialOptions && data.relevantFinancialOptions.length > 0) {
+                    this.displayFinancialOptions(data.relevantFinancialOptions);
+                }
+                
+                // Show schemes display
+                const schemesDisplay = document.getElementById('schemes-display');
+                if (schemesDisplay) {
+                    schemesDisplay.style.display = 'block';
+                }
+            } else {
+                throw new Error(data.error);
+            }
+            
+        } catch (error) {
+            console.error('Schemes Chat Error:', error);
+            this.addSchemesMessage('ai', 'Sorry, I encountered an error. Please try again.');
+        }
+    }
+
+    addSchemesMessage(role, content) {
+        const messagesContainer = document.getElementById('schemes-chat-messages');
+        if (!messagesContainer) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+        
+        const avatar = role === 'ai' ? '🏛️' : '👨‍🌾';
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">${avatar}</div>
+            <div class="message-content">
+                <p>${content}</p>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    displaySchemes(schemes) {
+        const schemesList = document.getElementById('schemes-list');
+        if (!schemesList) return;
+        
+        schemesList.innerHTML = schemes.map(scheme => `
+            <div class="scheme-card">
+                <h5>${scheme.name}</h5>
+                <p><strong>Description:</strong> ${scheme.description}</p>
+                <p><strong>Eligibility:</strong> ${scheme.eligibility}</p>
+                <p><strong>Benefits:</strong> ${scheme.benefits}</p>
+                <div class="benefits">
+                    <strong>Application Process:</strong> ${scheme.applicationProcess}
+                </div>
+                <div class="contact">
+                    <strong>Contact:</strong> ${scheme.contact}<br>
+                    <strong>Website:</strong> <a href="${scheme.website}" target="_blank">${scheme.website}</a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    displayFinancialOptions(options) {
+        const financialOptions = document.getElementById('financial-options');
+        if (!financialOptions) return;
+        
+        financialOptions.innerHTML = options.map(option => `
+            <div class="financial-card">
+                <h5>${option.name}</h5>
+                <p><strong>Type:</strong> ${option.type}</p>
+                <p><strong>Amount:</strong> ${option.amount}</p>
+                <p><strong>Interest:</strong> ${option.interest}</p>
+                <p><strong>Tenure:</strong> ${option.tenure}</p>
+                <div class="features">
+                    <strong>Features:</strong><br>
+                    ${option.features.map(feature => `• ${feature}`).join('<br>')}
+                </div>
+            </div>
+        `).join('');
+    }
+
     toggleLanguage() {
         this.currentLanguage = this.currentLanguage === 'hi' ? 'en' : 'hi';
         
@@ -781,6 +912,8 @@ class KisanAI {
                 btn.textContent = this.currentLanguage === 'hi' ? 'बाजार' : 'Market';
             } else if (section === 'irrigation') {
                 btn.textContent = this.currentLanguage === 'hi' ? 'पानी' : 'Water';
+            } else if (section === 'schemes-chat') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'योजनाएं' : 'Schemes';
             }
         });
     }
@@ -1298,6 +1431,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function goHome() {
     if (window.kisanAI) {
         window.kisanAI.goHome();
+    }
+}
+
+// Global function to show schemes chat (called from HTML onclick)
+function showSchemesChat() {
+    if (window.kisanAI) {
+        window.kisanAI.navigateToSection('schemes-chat');
     }
 }
 
