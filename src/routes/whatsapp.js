@@ -12,25 +12,57 @@ const openai = new OpenAI({
 // Initialize WhatsApp client
 let whatsappClient = null;
 let qrCode = null;
+let isInitializing = false;
+let isConnected = false;
 
 // Initialize WhatsApp
 const initializeWhatsApp = async () => {
+  // Check if already initializing or connected
+  if (isInitializing || isConnected) {
+    console.log('📱 WhatsApp already initializing or connected');
+    return;
+  }
+
+  // Check if WhatsApp is enabled
+  if (process.env.WHATSAPP_ENABLED !== 'true') {
+    console.log('📱 WhatsApp is disabled. Set WHATSAPP_ENABLED=true to enable');
+    return;
+  }
+
   try {
+    isInitializing = true;
+    console.log('📱 Initializing WhatsApp client...');
+    
     whatsappClient = new Client({
-      authStrategy: new LocalAuth(),
+      authStrategy: new LocalAuth({
+        clientId: process.env.WHATSAPP_CLIENT_ID || 'kisan-ai',
+        dataPath: process.env.WHATSAPP_DATA_PATH || './whatsapp-sessions'
+      }),
       puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu'
+        ]
       }
     });
 
     whatsappClient.on('qr', async (qr) => {
-      qrCode = await qrcode.toDataURL(qr);
-      console.log('📱 WhatsApp QR Code generated');
+      if (!isConnected) {
+        qrCode = await qrcode.toDataURL(qr);
+        console.log('📱 WhatsApp QR Code generated - Scan to connect');
+      }
     });
 
     whatsappClient.on('ready', () => {
       console.log('✅ WhatsApp client is ready!');
+      isConnected = true;
+      isInitializing = false;
       qrCode = null;
     });
 
@@ -40,33 +72,63 @@ const initializeWhatsApp = async () => {
 
     whatsappClient.on('auth_failure', (msg) => {
       console.error('❌ WhatsApp authentication failed:', msg);
+      isConnected = false;
+      isInitializing = false;
+    });
+
+    whatsappClient.on('disconnected', (reason) => {
+      console.log('📱 WhatsApp client disconnected:', reason);
+      isConnected = false;
+      isInitializing = false;
     });
 
     await whatsappClient.initialize();
   } catch (error) {
     console.error('WhatsApp initialization error:', error);
+    isInitializing = false;
   }
 };
 
-// Initialize WhatsApp on startup
-initializeWhatsApp();
+// Initialize WhatsApp on startup only if enabled
+if (process.env.WHATSAPP_ENABLED === 'true') {
+  initializeWhatsApp();
+}
 
 // Get WhatsApp QR Code
 router.get('/qr', (req, res) => {
-  if (qrCode) {
-    res.json({ success: true, qrCode: qrCode });
-  } else if (whatsappClient && whatsappClient.isConnected) {
+  if (isConnected) {
     res.json({ success: true, message: 'WhatsApp is already connected' });
+  } else if (qrCode) {
+    res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
+  } else if (isInitializing) {
+    res.json({ success: false, message: 'WhatsApp is initializing, please wait...' });
   } else {
-    res.json({ success: false, message: 'QR code not available' });
+    res.json({ success: false, message: 'WhatsApp not available. Check environment variables.' });
   }
+});
+
+// Get WhatsApp Status
+router.get('/status', (req, res) => {
+  res.json({
+    success: true,
+    status: {
+      isConnected: isConnected,
+      isInitializing: isInitializing,
+      hasQRCode: !!qrCode,
+      clientExists: !!whatsappClient
+    }
+  });
 });
 
 // Helper function to send WhatsApp message (used by other routes)
 const sendWhatsAppMessage = async (phoneNumber, message) => {
   try {
-    if (!whatsappClient || !whatsappClient.isConnected) {
-      throw new Error('WhatsApp not connected');
+    if (!isConnected) {
+      throw new Error('WhatsApp not connected. Please scan QR code first.');
+    }
+
+    if (!whatsappClient) {
+      throw new Error('WhatsApp client not initialized');
     }
 
     // Format phone number for WhatsApp

@@ -757,6 +757,9 @@ class KisanAI {
         this.addSchemesMessage('user', message);
         input.value = '';
         
+        // Add thinking message
+        const thinkingId = this.addThinkingMessage();
+        
         try {
             const response = await fetch('/api/schemes/chat', {
                 method: 'POST',
@@ -773,6 +776,9 @@ class KisanAI {
             const data = await response.json();
             
             if (data.success) {
+                // Remove thinking message
+                this.removeThinkingMessage(thinkingId);
+                
                 // Add AI response to chat
                 this.addSchemesMessage('ai', data.response);
                 
@@ -825,6 +831,67 @@ class KisanAI {
         
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    addThinkingMessage() {
+        const messagesContainer = document.getElementById('schemes-chat-messages');
+        if (!messagesContainer) return null;
+        
+        const thinkingDiv = document.createElement('div');
+        const thinkingId = 'thinking-' + Date.now();
+        thinkingDiv.id = thinkingId;
+        thinkingDiv.className = 'message ai-message thinking-message';
+        
+        thinkingDiv.innerHTML = `
+            <div class="message-avatar">🏛️</div>
+            <div class="message-content">
+                <div class="thinking-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <p>Thinking...</p>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(thinkingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return thinkingId;
+    }
+
+    removeThinkingMessage(thinkingId) {
+        if (thinkingId) {
+            const thinkingDiv = document.getElementById(thinkingId);
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+    }
+
+    addThinkingMessageMain() {
+        const messagesContainer = document.getElementById('chat-messages');
+        if (!messagesContainer) return null;
+        
+        const thinkingDiv = document.createElement('div');
+        const thinkingId = 'thinking-main-' + Date.now();
+        thinkingDiv.id = thinkingId;
+        thinkingDiv.className = 'message ai-message thinking-message';
+        
+        thinkingDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+                <div class="thinking-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <p>Thinking...</p>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(thinkingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return thinkingId;
     }
 
     displaySchemes(schemes) {
