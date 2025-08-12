@@ -1673,12 +1673,23 @@ class WhatsAppManager {
             const data = await response.json();
             
             if (data.success) {
-                if (data.status.isConnected) {
-                    this.updateStatus('connected', 'WhatsApp is connected and ready!');
-                    this.showNotification('WhatsApp is already connected!', 'success');
-                } else if (data.status.hasQRCode) {
+                this.currentStatus = data.status;
+                
+                if (data.status === 'connected') {
+                    if (data.method === 'business_api') {
+                        this.updateStatus('connected', 'WhatsApp Business API ready - No QR code needed!');
+                        this.showNotification('WhatsApp Business API is ready!', 'success');
+                        this.showBusinessAPIState();
+                    } else {
+                        this.updateStatus('connected', 'WhatsApp is connected and ready!');
+                        this.showNotification('WhatsApp is already connected!', 'success');
+                    }
+                } else if (data.status === 'waiting_for_scan' && data.method === 'web_js') {
                     this.updateStatus('waiting', 'Waiting for QR code scan...');
                     this.showNotification('QR code available, please scan to connect', 'info');
+                } else if (data.status === 'initializing') {
+                    this.updateStatus('initializing', 'WhatsApp is initializing...');
+                    this.showNotification('WhatsApp is initializing...', 'info');
                 } else {
                     this.updateStatus('disconnected', 'WhatsApp is not connected');
                     this.showNotification('WhatsApp is not connected', 'warning');
@@ -1767,6 +1778,17 @@ class WhatsAppManager {
         if (qrContainer) {
             qrContainer.style.display = 'none';
         }
+    }
+
+    showBusinessAPIState() {
+        // Hide QR code container since it's not needed
+        this.hideQRCode();
+        
+        // Update status to show Business API is ready
+        this.updateStatus('connected', 'WhatsApp Business API ready - No QR code needed!');
+        
+        // Show success notification
+        this.showNotification('WhatsApp Business API is ready! You can send messages directly.', 'success');
     }
 
     updateStatus(status, message) {

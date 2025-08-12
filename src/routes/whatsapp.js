@@ -1,613 +1,331 @@
 const express = require('express');
-const router = express.Router();
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
-const cron = require('node-cron');
-const OpenAI = require('openai');
+const router = express.Router();
 
-// Initialize OpenAI only if API key is available
-let openai = null;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
-}
+// WhatsApp Web.js client (for QR code method)
+let whatsappClient = null;
+let isConnected = false;
+let isInitializing = false;
+let qrCode = null;
+
+// WhatsApp Business API configuration
+const WHATSAPP_BUSINESS_API_ENABLED = process.env.WHATSAPP_BUSINESS_API_ENABLED === 'true';
+const WHATSAPP_BUSINESS_API_TOKEN = process.env.WHATSAPP_BUSINESS_API_TOKEN;
+const WHATSAPP_BUSINESS_PHONE_NUMBER_ID = process.env.WHATSAPP_BUSINESS_PHONE_NUMBER_ID;
+const WHATSAPP_BUSINESS_VERIFY_TOKEN = process.env.WHATSAPP_BUSINESS_VERIFY_TOKEN;
 
 // Initialize WhatsApp client
-let whatsappClient = null;
-let qrCode = null;
-let isInitializing = false;
-let isConnected = false;
+async function initializeWhatsApp() {
+    if (WHATSAPP_BUSINESS_API_ENABLED && WHATSAPP_BUSINESS_API_TOKEN) {
+        console.log('📱 Using WhatsApp Business API - No QR code needed');
+        return;
+    }
 
-// Initialize WhatsApp
-const initializeWhatsApp = async () => {
-  // Check if already initializing or connected
-  if (isInitializing || isConnected) {
-    console.log('📱 WhatsApp already initializing or connected');
-    return;
-  }
+    if (whatsappClient) {
+        console.log('📱 WhatsApp client already initialized');
+        return;
+    }
 
-  console.log('📱 Starting WhatsApp initialization...');
+    try {
+        console.log('📱 Initializing WhatsApp client...');
+        isInitializing = true;
+        
+        whatsappClient = new Client({
+            authStrategy: new LocalAuth({
+                clientId: process.env.WHATSAPP_CLIENT_ID || 'kisan-ai'
+            }),
+            puppeteer: {
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
+            }
+        });
 
-  try {
-    isInitializing = true;
-    console.log('📱 Initializing WhatsApp client...');
-    
-    whatsappClient = new Client({
-      authStrategy: new LocalAuth({
-        clientId: process.env.WHATSAPP_CLIENT_ID || 'kisan-ai',
-        dataPath: process.env.WHATSAPP_DATA_PATH || './whatsapp-sessions'
-      }),
-      puppeteer: {
-        headless: true,
-        args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu'
-        ]
-      }
-    });
+        whatsappClient.on('qr', (qr) => {
+            console.log('📱 WhatsApp QR Code generated - Scan to connect');
+            qrCode = qr;
+        });
 
-    whatsappClient.on('qr', async (qr) => {
-      if (!isConnected) {
-        qrCode = await qrcode.toDataURL(qr);
-        console.log('📱 WhatsApp QR Code generated - Scan to connect');
-      }
-    });
+        whatsappClient.on('ready', () => {
+            console.log('✅ WhatsApp client is ready!');
+            isConnected = true;
+            isInitializing = false;
+            qrCode = null;
+        });
 
-    whatsappClient.on('ready', () => {
-      console.log('✅ WhatsApp client is ready!');
-      isConnected = true;
-      isInitializing = false;
-      qrCode = null;
-    });
+        whatsappClient.on('authenticated', () => {
+            console.log('🔐 WhatsApp client authenticated');
+        });
 
-    whatsappClient.on('authenticated', () => {
-      console.log('🔐 WhatsApp client authenticated');
-    });
+        whatsappClient.on('auth_failure', (msg) => {
+            console.error('❌ WhatsApp authentication failed:', msg);
+            isInitializing = false;
+        });
 
-    whatsappClient.on('auth_failure', (msg) => {
-      console.error('❌ WhatsApp authentication failed:', msg);
-      isConnected = false;
-      isInitializing = false;
-    });
+        whatsappClient.on('disconnected', (reason) => {
+            console.log('📱 WhatsApp client disconnected:', reason);
+            isConnected = false;
+            isInitializing = false;
+            qrCode = null;
+        });
 
-    whatsappClient.on('disconnected', (reason) => {
-      console.log('📱 WhatsApp client disconnected:', reason);
-      isConnected = false;
-      isInitializing = false;
-    });
+        await whatsappClient.initialize();
+        
+    } catch (error) {
+        console.error('📱 WhatsApp initialization error:', error);
+        isInitializing = false;
+    }
+}
 
-    await whatsappClient.initialize();
-  } catch (error) {
-    console.error('WhatsApp initialization error:', error);
-    isInitializing = false;
-  }
-};
+// Send message using WhatsApp Business API
+async function sendMessageViaBusinessAPI(phoneNumber, message) {
+    try {
+        if (!WHATSAPP_BUSINESS_API_ENABLED || !WHATSAPP_BUSINESS_API_TOKEN) {
+            throw new Error('WhatsApp Business API not configured');
+        }
 
-// Always initialize WhatsApp on startup for simplicity
-console.log('🔄 Starting WhatsApp initialization...');
+        const formattedNumber = phoneNumber.replace(/\D/g, '');
+        const url = `https://graph.facebook.com/v18.0/${WHATSAPP_BUSINESS_PHONE_NUMBER_ID}/messages`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_BUSINESS_API_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: formattedNumber,
+                type: 'text',
+                text: { body: message }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(`WhatsApp API Error: ${data.error.message}`);
+        }
+
+        return {
+            success: true,
+            messageId: data.messages?.[0]?.id,
+            timestamp: new Date().toISOString()
+        };
+        
+    } catch (error) {
+        console.error('WhatsApp Business API Error:', error);
+        throw error;
+    }
+}
+
+// Send message using WhatsApp Web.js (QR code method)
+async function sendMessageViaWebJS(phoneNumber, message) {
+    try {
+        if (!whatsappClient || !isConnected) {
+            throw new Error('WhatsApp Web.js client not connected');
+        }
+
+        const formattedNumber = phoneNumber.replace(/\D/g, '');
+        const chatId = `${formattedNumber}@c.us`;
+        
+        await whatsappClient.sendMessage(chatId, message);
+        
+        return {
+            success: true,
+            timestamp: new Date().toISOString()
+        };
+        
+    } catch (error) {
+        console.error('WhatsApp Web.js Error:', error);
+        throw error;
+    }
+}
+
+// Unified send message function
+async function sendWhatsAppMessage(phoneNumber, message) {
+    try {
+        // Try Business API first (no QR code needed)
+        if (WHATSAPP_BUSINESS_API_ENABLED && WHATSAPP_BUSINESS_API_TOKEN) {
+            return await sendMessageViaBusinessAPI(phoneNumber, message);
+        }
+        
+        // Fallback to Web.js method (requires QR code)
+        if (whatsappClient && isConnected) {
+            return await sendMessageViaWebJS(phoneNumber, message);
+        }
+        
+        throw new Error('No WhatsApp method available');
+        
+    } catch (error) {
+        console.error('WhatsApp send error:', error);
+        throw error;
+    }
+}
+
+// Initialize WhatsApp on startup
 initializeWhatsApp();
 
-// Get WhatsApp QR Code - SUPER SIMPLE
-router.get('/qr', async (req, res) => {
-  console.log('📱 QR code requested. Status:', { isConnected, isInitializing, hasQR: !!qrCode });
-  
-  if (isConnected) {
-    res.json({ success: true, message: 'WhatsApp is already connected' });
-  } else if (qrCode) {
-    console.log('📱 Returning existing QR code');
-    res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
-  } else if (isInitializing) {
-    res.json({ success: false, message: 'WhatsApp is initializing, please wait...' });
-  } else {
-    // Force immediate initialization
-    console.log('📱 Force initializing WhatsApp...');
+// Get WhatsApp status
+router.get('/status', async (req, res) => {
     try {
-      await initializeWhatsApp();
-      
-      // Wait for QR code with timeout
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      while (!qrCode && attempts < maxAttempts) {
-        console.log(`📱 Waiting for QR code... attempt ${attempts + 1}`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        attempts++;
-      }
-      
-      if (qrCode) {
-        console.log('📱 QR code generated successfully, returning to user');
-        res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
-      } else {
-        console.log('📱 QR code not generated after waiting');
-        res.json({ success: false, message: 'QR code not generated. Try again.' });
-      }
+        let status = 'disconnected';
+        let message = 'WhatsApp not connected';
+        
+        if (WHATSAPP_BUSINESS_API_ENABLED && WHATSAPP_BUSINESS_API_TOKEN) {
+            status = 'connected';
+            message = 'WhatsApp Business API ready - No QR code needed';
+        } else if (whatsappClient && isConnected) {
+            status = 'connected';
+            message = 'WhatsApp Web.js connected';
+        } else if (isInitializing) {
+            status = 'initializing';
+            message = 'WhatsApp initializing...';
+        } else if (qrCode) {
+            status = 'waiting_for_scan';
+            message = 'QR code ready for scanning';
+        }
+        
+        res.json({
+            success: true,
+            status: status,
+            message: message,
+            method: WHATSAPP_BUSINESS_API_ENABLED ? 'business_api' : 'web_js',
+            isConnected: status === 'connected',
+            isInitializing: status === 'initializing',
+            hasQR: status === 'waiting_for_scan'
+        });
     } catch (error) {
-      console.error('Force initialization error:', error);
-      res.json({ success: false, message: 'Failed to initialize WhatsApp' });
+        console.error('Status check error:', error);
+        res.status(500).json({ success: false, error: 'Failed to check status' });
     }
-  }
 });
 
-// Get WhatsApp Status
-router.get('/status', (req, res) => {
-  res.json({
-    success: true,
-    status: {
-      isConnected: isConnected,
-      isInitializing: isInitializing,
-      hasQRCode: !!qrCode,
-      clientExists: !!whatsappClient,
-      whatsappEnabled: process.env.WHATSAPP_ENABLED === 'true',
-      environment: process.env.NODE_ENV || 'production'
+// Get QR code (only for Web.js method)
+router.get('/qr', async (req, res) => {
+    try {
+        if (WHATSAPP_BUSINESS_API_ENABLED) {
+            return res.json({
+                success: false,
+                message: 'QR code not needed - Using WhatsApp Business API'
+            });
+        }
+
+        if (!qrCode) {
+            return res.json({
+                success: false,
+                message: 'No QR code available'
+            });
+        }
+
+        const qrCodeDataURL = await qrcode.toDataURL(qrCode);
+        res.json({
+            success: true,
+            qrCode: qrCodeDataURL,
+            status: 'waiting_for_scan'
+        });
+    } catch (error) {
+        console.error('QR code error:', error);
+        res.status(500).json({ success: false, error: 'Failed to generate QR code' });
     }
-  });
 });
-
-// Test WhatsApp connection
-router.get('/test', async (req, res) => {
-  try {
-    if (!whatsappClient) {
-      return res.json({ 
-        success: false, 
-        message: 'WhatsApp client not initialized',
-        suggestion: 'Try /initialize endpoint first'
-      });
-    }
-    
-    if (!isConnected) {
-      return res.json({ 
-        success: false, 
-        message: 'WhatsApp not connected',
-        suggestion: 'Scan QR code to connect'
-      });
-    }
-    
-    res.json({ 
-      success: true, 
-      message: 'WhatsApp is ready and connected!',
-      status: 'connected'
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Force QR code generation for testing
-router.get('/force-qr', async (req, res) => {
-  try {
-    console.log('📱 Force QR code generation requested');
-    
-    if (isConnected) {
-      return res.json({ success: false, message: 'WhatsApp already connected' });
-    }
-    
-    // Reset and reinitialize
-    if (whatsappClient) {
-      try {
-        await whatsappClient.destroy();
-      } catch (e) {
-        console.log('Destroyed existing client');
-      }
-      whatsappClient = null;
-    }
-    
-    isConnected = false;
-    isInitializing = false;
-    qrCode = null;
-    
-    // Start fresh initialization
-    await initializeWhatsApp();
-    
-    // Wait for QR code
-    let attempts = 0;
-    const maxAttempts = 15;
-    
-    while (!qrCode && attempts < maxAttempts) {
-      console.log(`📱 Waiting for QR code... attempt ${attempts + 1}`);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      attempts++;
-    }
-    
-    if (qrCode) {
-      console.log('📱 Force QR code generated successfully');
-      res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
-    } else {
-      console.log('📱 Force QR code failed');
-      res.json({ success: false, message: 'Failed to generate QR code' });
-    }
-  } catch (error) {
-    console.error('Force QR code error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Manual WhatsApp initialization
-router.post('/initialize', async (req, res) => {
-  try {
-    if (isInitializing || isConnected) {
-      return res.json({ 
-        success: false, 
-        message: 'WhatsApp is already initializing or connected' 
-      });
-    }
-    
-    console.log('📱 Manual WhatsApp initialization requested...');
-    
-    // Reset any existing client
-    if (whatsappClient) {
-      try {
-        await whatsappClient.destroy();
-      } catch (e) {
-        console.log('Destroyed existing client');
-      }
-      whatsappClient = null;
-    }
-    
-    // Reset states
-    isConnected = false;
-    isInitializing = false;
-    qrCode = null;
-    
-    // Start initialization
-    await initializeWhatsApp();
-    
-    res.json({ 
-      success: true, 
-      message: 'WhatsApp initialization started. Check /qr endpoint for QR code.' 
-    });
-  } catch (error) {
-    console.error('Manual initialization error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to initialize WhatsApp' 
-    });
-  }
-});
-
-// Helper function to send WhatsApp message (used by other routes)
-const sendWhatsAppMessage = async (phoneNumber, message) => {
-  try {
-    if (!isConnected) {
-      throw new Error('WhatsApp not connected. Please scan QR code first.');
-    }
-
-    if (!whatsappClient) {
-      throw new Error('WhatsApp client not initialized');
-    }
-
-    // Format phone number for WhatsApp
-    const formattedNumber = phoneNumber.replace(/\D/g, '');
-    const chatId = `${formattedNumber}@c.us`;
-
-    // Send message
-    await whatsappClient.sendMessage(chatId, message);
-    
-    return { success: true, message: 'Message sent successfully' };
-  } catch (error) {
-    console.error('Send WhatsApp message error:', error);
-    throw error;
-  }
-};
 
 // Send WhatsApp Message
 router.post('/send-message', async (req, res) => {
-  try {
-    const { phoneNumber, message, language = 'en' } = req.body;
-    
-    if (!whatsappClient || !whatsappClient.isConnected) {
-      return res.status(400).json({ success: false, error: 'WhatsApp not connected' });
-    }
-
-    // Format phone number for WhatsApp
-    const formattedNumber = phoneNumber.replace(/\D/g, '');
-    const chatId = `${formattedNumber}@c.us`;
-
-    // Send message
-    await whatsappClient.sendMessage(chatId, message);
-    
-    res.json({
-      success: true,
-      message: 'Message sent successfully',
-      phoneNumber: phoneNumber,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Send message error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send message' });
-  }
-});
-
-// Schedule WhatsApp Reminders
-router.post('/schedule-reminder', async (req, res) => {
-  try {
-    const { phoneNumber, message, scheduleTime, frequency, crop, task } = req.body;
-    
-    // Validate schedule time
-    const scheduleDate = new Date(scheduleTime);
-    if (isNaN(scheduleDate.getTime())) {
-      return res.status(400).json({ success: false, error: 'Invalid schedule time' });
-    }
-
-    // Create reminder task
-    const reminderTask = cron.schedule(scheduleTime, async () => {
-      try {
-        if (whatsappClient && whatsappClient.isConnected) {
-          const formattedNumber = phoneNumber.replace(/\D/g, '');
-          const chatId = `${formattedNumber}@c.us`;
-          
-          // Send reminder message
-          await whatsappClient.sendMessage(chatId, message);
-          console.log(`📅 Reminder sent to ${phoneNumber}: ${task}`);
+    try {
+        const { phoneNumber, message } = req.body;
+        
+        if (!phoneNumber || !message) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Phone number and message are required' 
+            });
         }
-      } catch (error) {
-        console.error('Reminder sending error:', error);
-      }
-    }, {
-      scheduled: true,
-      timezone: "Asia/Kolkata"
-    });
-
-    res.json({
-      success: true,
-      message: 'Reminder scheduled successfully',
-      phoneNumber: phoneNumber,
-      scheduleTime: scheduleTime,
-      task: task,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Schedule reminder error:', error);
-    res.status(500).json({ success: false, error: 'Failed to schedule reminder' });
-  }
-});
-
-// Automated Crop Care Reminders
-router.post('/crop-reminders', async (req, res) => {
-  try {
-    const { phoneNumber, crop, plantingDate, region, language = 'hi' } = req.body;
-    
-    // Calculate crop care schedule based on planting date
-    const planting = new Date(plantingDate);
-    const today = new Date();
-    const daysSincePlanting = Math.floor((today - planting) / (1000 * 60 * 60 * 24));
-    
-    // Generate crop-specific reminders
-    const reminders = generateCropReminders(crop, daysSincePlanting, region, language);
-    
-    // Schedule reminders
-    reminders.forEach((reminder, index) => {
-      const scheduleTime = new Date(planting.getTime() + (reminder.days * 24 * 60 * 60 * 1000));
-      
-      cron.schedule(scheduleTime, async () => {
-        try {
-          if (whatsappClient && whatsappClient.isConnected) {
-            const formattedNumber = phoneNumber.replace(/\D/g, '');
-            const chatId = `${formattedNumber}@c.us`;
-            
-            await whatsappClient.sendMessage(chatId, reminder.message);
-            console.log(`🌱 Crop reminder sent: ${reminder.task}`);
-          }
-        } catch (error) {
-          console.error('Crop reminder error:', error);
-        }
-      }, {
-        scheduled: true,
-        timezone: "Asia/Kolkata"
-      });
-    });
-
-    res.json({
-      success: true,
-      message: 'Crop reminders scheduled successfully',
-      crop: crop,
-      reminders: reminders.length,
-      phoneNumber: phoneNumber,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Crop reminders error:', error);
-    res.status(500).json({ success: false, error: 'Failed to schedule crop reminders' });
-  }
-});
-
-// Generate crop-specific reminders
-function generateCropReminders(crop, daysSincePlanting, region, language) {
-  const reminders = [];
-  
-  // Common crop care schedule
-  const careSchedule = {
-    'rice': [
-      { days: 7, task: 'seedling_care', message: `🌾 ${crop} के पौधों की देखभाल करें। पानी का स्तर बनाए रखें।` },
-      { days: 15, task: 'fertilizer', message: `🌱 ${crop} में खाद डालने का समय आ गया है।` },
-      { days: 30, task: 'pest_check', message: `🐛 ${crop} में कीटों की जांच करें।` },
-      { days: 60, task: 'harvest_prep', message: `📅 ${crop} की कटाई की तैयारी शुरू करें।` }
-    ],
-    'wheat': [
-      { days: 10, task: 'irrigation', message: `💧 ${crop} में सिंचाई करें।` },
-      { days: 25, task: 'weed_control', message: `🌿 ${crop} में खरपतवार नियंत्रण करें।` },
-      { days: 45, task: 'disease_check', message: `🔍 ${crop} में रोगों की जांच करें।` },
-      { days: 90, task: 'harvest', message: `🌾 ${crop} की कटाई का समय आ गया है।` }
-    ],
-    'cotton': [
-      { days: 5, task: 'thinning', message: `🌱 ${crop} में पतले पौधे हटाएं।` },
-      { days: 20, task: 'pest_control', message: `🐛 ${crop} में कीट नियंत्रण करें।` },
-      { days: 40, task: 'irrigation', message: `💧 ${crop} में सिंचाई करें।` },
-      { days: 120, task: 'harvest', message: `🌿 ${crop} की कटाई शुरू करें।` }
-    ]
-  };
-
-  const schedule = careSchedule[crop.toLowerCase()] || careSchedule['rice'];
-  
-  schedule.forEach(item => {
-    if (item.days > daysSincePlanting) {
-      reminders.push({
-        days: item.days,
-        task: item.task,
-        message: item.message
-      });
+        
+        const result = await sendWhatsAppMessage(phoneNumber, message);
+        
+        res.json({
+            success: true,
+            message: 'Message sent successfully',
+            phoneNumber: phoneNumber,
+            timestamp: result.timestamp,
+            method: WHATSAPP_BUSINESS_API_ENABLED ? 'business_api' : 'web_js'
+        });
+        
+    } catch (error) {
+        console.error('Send message error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Failed to send message' 
+        });
     }
-  });
-
-  return reminders;
-}
-
-// Weather Alerts via WhatsApp
-router.post('/weather-alerts', async (req, res) => {
-  try {
-    const { phoneNumber, location, weatherData, crop } = req.body;
-    
-    // Generate weather-based farming advice
-    const weatherAdvice = await generateWeatherAdvice(location, weatherData, crop);
-    
-    // Send weather alert
-    if (whatsappClient && whatsappClient.isConnected) {
-      const formattedNumber = phoneNumber.replace(/\D/g, '');
-      const chatId = `${formattedNumber}@c.us`;
-      
-      const alertMessage = `🌤️ मौसम अलर्ट - ${location}\n\n${weatherAdvice}\n\nकृपया अपनी फसल की सुरक्षा करें।`;
-      
-      await whatsappClient.sendMessage(chatId, alertMessage);
-    }
-
-    res.json({
-      success: true,
-      message: 'Weather alert sent successfully',
-      phoneNumber: phoneNumber,
-      location: location,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Weather alert error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send weather alert' });
-  }
 });
-
-// Generate weather advice using AI
-async function generateWeatherAdvice(location, weatherData, crop) {
-  try {
-    if (!openai) {
-      return 'मौसम के अनुसार अपनी फसल की देखभाल करें।';
-    }
-    
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: `You are a weather-based farming advisor for Indian farmers. Provide brief, actionable advice in Hindi based on weather conditions.`
-        },
-        {
-          role: "user",
-          content: `Location: ${location}, Weather: ${JSON.stringify(weatherData)}, Crop: ${crop}. Provide farming advice in Hindi.`
-        }
-      ],
-      max_tokens: 200,
-      temperature: 0.7
-    });
-
-    return completion.choices[0].message.content;
-  } catch (error) {
-    console.error('Weather advice generation error:', error);
-    return 'मौसम के अनुसार अपनी फसल की देखभाल करें।';
-  }
-}
-
-// Market Price Updates
-router.post('/market-updates', async (req, res) => {
-  try {
-    const { phoneNumber, crop, location, priceData } = req.body;
-    
-    const updateMessage = `📊 बाजार अपडेट - ${crop}\n\nस्थान: ${location}\nवर्तमान मूल्य: ₹${priceData.currentPrice}/quintal\n\n${priceData.trend === 'up' ? '📈' : '📉'} ${priceData.trend === 'up' ? 'मूल्य बढ़ रहा है' : 'मूल्य गिर रहा है'}`;
-    
-    if (whatsappClient && whatsappClient.isConnected) {
-      const formattedNumber = phoneNumber.replace(/\D/g, '');
-      const chatId = `${formattedNumber}@c.us`;
-      
-      await whatsappClient.sendMessage(chatId, updateMessage);
-    }
-
-    res.json({
-      success: true,
-      message: 'Market update sent successfully',
-      phoneNumber: phoneNumber,
-      crop: crop,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Market update error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send market update' });
-  }
-});
-
-
 
 // Disconnect WhatsApp
 router.post('/disconnect', async (req, res) => {
-  try {
-    if (whatsappClient) {
-      await whatsappClient.destroy();
-      whatsappClient = null;
-      isConnected = false;
-      isInitializing = false;
-      qrCode = null;
-      
-      console.log('📱 WhatsApp client disconnected successfully');
-      res.json({ success: true, message: 'WhatsApp disconnected successfully' });
-    } else {
-      res.json({ success: false, message: 'WhatsApp client not found' });
+    try {
+        if (whatsappClient) {
+            await whatsappClient.destroy();
+            whatsappClient = null;
+            isConnected = false;
+            isInitializing = false;
+            qrCode = null;
+            console.log('📱 WhatsApp client disconnected successfully');
+            res.json({ success: true, message: 'WhatsApp disconnected successfully' });
+        } else {
+            res.json({ success: false, message: 'WhatsApp client not found' });
+        }
+    } catch (error) {
+        console.error('WhatsApp disconnect error:', error);
+        res.status(500).json({ success: false, error: 'Failed to disconnect WhatsApp' });
     }
-  } catch (error) {
-    console.error('WhatsApp disconnect error:', error);
-    res.status(500).json({ success: false, error: 'Failed to disconnect WhatsApp' });
-  }
 });
 
-// Send WhatsApp Message
-router.post('/send-message', async (req, res) => {
-  try {
-    const { phoneNumber, message } = req.body;
-    
-    if (!phoneNumber || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Phone number and message are required' 
-      });
+// Webhook verification for WhatsApp Business API
+router.get('/webhook', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode && token) {
+        if (mode === 'subscribe' && token === WHATSAPP_BUSINESS_VERIFY_TOKEN) {
+            console.log('✅ WhatsApp webhook verified');
+            res.status(200).send(challenge);
+        } else {
+            res.sendStatus(403);
+        }
     }
-    
-    if (!whatsappClient || !isConnected) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'WhatsApp not connected' 
-      });
+});
+
+// Webhook for receiving messages (Business API)
+router.post('/webhook', (req, res) => {
+    const body = req.body;
+
+    if (body.object === 'whatsapp_business_account') {
+        try {
+            body.entry.forEach(entry => {
+                entry.changes.forEach(change => {
+                    if (change.value.messages && change.value.messages.length > 0) {
+                        const message = change.value.messages[0];
+                        console.log('📱 Received WhatsApp message:', message);
+                        // Handle incoming messages here
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Webhook processing error:', error);
+        }
     }
-    
-    const formattedNumber = phoneNumber.replace(/\D/g, '');
-    const chatId = `${formattedNumber}@c.us`;
-    
-    await whatsappClient.sendMessage(chatId, message);
-    
-    res.json({
-      success: true,
-      message: 'Message sent successfully',
-      phoneNumber: phoneNumber,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Send message error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to send message' 
-    });
-  }
+
+    res.sendStatus(200);
 });
 
 // Export both router and helper function
