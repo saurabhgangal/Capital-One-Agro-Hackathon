@@ -1965,6 +1965,7 @@ body {
     .header-content {
         flex-direction: column;
         gap: var(--spacing-4);
+        padding: var(--spacing-4);
     }
     
     .logo-text {
@@ -1977,6 +1978,7 @@ body {
     
     .action-buttons {
         grid-template-columns: 1fr;
+        gap: var(--spacing-3);
     }
     
     .weather-content {
@@ -1987,676 +1989,625 @@ body {
     .chat-actions {
         display: none;
     }
-}
 
-@media (max-width: 480px) {
-    .main-content {
-        padding: var(--spacing-4);
+    /* Mobile Navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: var(--spacing-3);
+        z-index: 1000;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
     }
-    
-    .dashboard-grid {
-        gap: var(--spacing-4);
+
+    .nav-btn {
+        padding: var(--spacing-3);
+        font-size: 0.8rem;
+        min-height: 60px;
+        border-radius: var(--radius-lg);
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
-    
-    .quick-actions, .weather-widget, .market-updates, .schemes-widget {
-        padding: var(--spacing-4);
+
+    .nav-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
     }
-    
+
+    .nav-btn:active::before {
+        left: 100%;
+    }
+
     .nav-btn span {
-        display: none;
+        font-size: 0.7rem;
+        margin-top: var(--spacing-1);
+        font-weight: 500;
     }
-}
 
-/* Custom Data Section Styles */
-.custom-data-section {
-    animation: slideInUp 0.8s ease-out;
-}
-
-.custom-data-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-8);
-}
-
-.upload-dataset {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-2xl);
-    padding: var(--spacing-6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-xl);
-}
-
-.upload-dataset h4 {
-    color: var(--text-accent);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-4);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-3);
-}
-
-.upload-dataset p {
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-6);
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-.dataset-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-4);
-}
-
-.upload-btn {
-    background: var(--gradient-success);
-    color: var(--text-primary);
-    border: none;
-    padding: var(--spacing-4) var(--spacing-6);
-    border-radius: var(--radius-lg);
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-3);
-    box-shadow: var(--shadow-md);
-}
-
-.upload-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.dataset-list {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-2xl);
-    padding: var(--spacing-6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-xl);
-}
-
-.dataset-list h4 {
-    color: var(--text-accent);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-6);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-3);
-}
-
-.dataset-item {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
-    margin-bottom: var(--spacing-4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
-.dataset-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.dataset-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-3);
-}
-
-.dataset-header h5 {
-    color: var(--text-primary);
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.dataset-actions {
-    display: flex;
-    gap: var(--spacing-2);
-}
-
-.view-btn, .delete-btn {
-    padding: var(--spacing-2) var(--spacing-3);
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.view-btn {
-    background: var(--gradient-info);
-    color: var(--text-primary);
-}
-
-.delete-btn {
-    background: var(--gradient-error);
-    color: var(--text-primary);
-}
-
-.view-btn:hover, .delete-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.dataset-info {
-    display: flex;
-    gap: var(--spacing-4);
-    margin-bottom: var(--spacing-3);
-    flex-wrap: wrap;
-}
-
-.dataset-type, .dataset-location, .dataset-date {
-    background: rgba(255, 255, 255, 0.1);
-    padding: var(--spacing-2) var(--spacing-3);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.dataset-description {
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.5;
-}
-
-.no-datasets {
-    text-align: center;
-    padding: var(--spacing-8);
-    color: var(--text-secondary);
-}
-
-.no-datasets i {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-4);
-    opacity: 0.5;
-}
-
-.loading-datasets {
-    text-align: center;
-    padding: var(--spacing-8);
-    color: var(--text-secondary);
-}
-
-.loading-datasets i {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-4);
-    animation: spin 1s linear infinite;
-}
-
-/* Dataset Modal */
-.dataset-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    animation: fadeIn 0.3s ease;
-}
-
-.dataset-modal-content {
-    background: var(--background);
-    border-radius: var(--radius-2xl);
-    padding: var(--spacing-6);
-    max-width: 800px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-2xl);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-6);
-    padding-bottom: var(--spacing-4);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.modal-header h3 {
-    color: var(--text-accent);
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: var(--spacing-2);
-    border-radius: var(--radius-md);
-    transition: all 0.3s ease;
-}
-
-.close-modal:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-}
-
-.dataset-details {
-    margin-bottom: var(--spacing-6);
-}
-
-.dataset-details p {
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-2);
-    font-size: 1rem;
-}
-
-.dataset-details strong {
-    color: var(--text-accent);
-}
-
-.dataset-preview h4 {
-    color: var(--text-accent);
-    margin-bottom: var(--spacing-4);
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.dataset-preview pre {
-    background: rgba(255, 255, 255, 0.05);
-    padding: var(--spacing-4);
-    border-radius: var(--radius-lg);
-    overflow-x: auto;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.4;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Utility Classes */
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
-
-.mb-1 { margin-bottom: var(--spacing-2); }
-.mb-2 { margin-bottom: var(--spacing-4); }
-.mb-3 { margin-bottom: var(--spacing-6); }
-
-.mt-1 { margin-top: var(--spacing-2); }
-.mt-2 { margin-top: var(--spacing-4); }
-.mt-3 { margin-top: var(--spacing-6); }
-
-.hidden { display: none; }
-.visible { display: block; }
-
-/* Loading States */
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid var(--primary-green);
-    border-top: 2px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-/* WhatsApp Section Styles */
-.whatsapp-section {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-.whatsapp-content {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.whatsapp-status {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    box-shadow: var(--shadow-sm);
-    text-align: center;
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-}
-
-.status-indicator i {
-    font-size: 1.2rem;
-    animation: pulse 2s infinite;
-}
-
-.status-indicator span {
-    font-weight: 500;
-    color: var(--dark-gray);
-}
-
-.qr-code-container {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    box-shadow: var(--shadow-sm);
-    text-align: center;
-}
-
-.qr-code-container h4 {
-    color: var(--primary-green);
-    margin-bottom: var(--spacing-md);
-}
-
-.qr-code-wrapper {
-    background: var(--light-gray);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
-    margin: var(--spacing-md) 0;
-    display: inline-block;
-}
-
-.qr-code-wrapper img {
-    max-width: 250px;
-    height: auto;
-    border-radius: var(--radius-sm);
-}
-
-.qr-instructions {
-    color: var(--dark-gray);
-    margin: var(--spacing-md) 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-.refresh-btn {
-    background: var(--accent-orange);
-    color: var(--white);
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-weight: 500;
-}
-
-.refresh-btn:hover {
-    background: #F57C00;
-    transform: translateY(-2px);
-}
-
-.whatsapp-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: center;
-    margin-bottom: var(--spacing-lg);
-}
-
-.connect-btn, .disconnect-btn {
-    padding: var(--spacing-md) var(--spacing-lg);
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    min-width: 160px;
-    justify-content: center;
-}
-
-.connect-btn {
-    background: #25D366;
-    color: var(--white);
-}
-
-.connect-btn:hover {
-    background: #128C7E;
-    transform: translateY(-2px);
-}
-
-.disconnect-btn {
-    background: var(--soil-red);
-    color: var(--white);
-}
-
-.disconnect-btn:hover {
-    background: #C0392B;
-    transform: translateY(-2px);
-}
-
-.whatsapp-info {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.whatsapp-info h4 {
-    color: var(--primary-green);
-    margin-bottom: var(--spacing-md);
-    text-align: center;
-}
-
-.whatsapp-info ul {
-    list-style: none;
-    padding: 0;
-}
-
-.whatsapp-info li {
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--light-gray);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.whatsapp-info li:before {
-    content: '✓';
-    color: var(--secondary-green);
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.whatsapp-info li:last-child {
-    border-bottom: none;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* WhatsApp Integration Styles for Irrigation Section */
-.whatsapp-controls {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    margin-left: var(--spacing-lg);
-    min-width: 200px;
-}
-
-.whatsapp-status {
-    background: var(--white);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-}
-
-.status-indicator i {
-    font-size: 1rem;
-    animation: pulse 2s infinite;
-}
-
-.status-indicator span {
-    font-weight: 500;
-    color: var(--dark-gray);
-    font-size: 0.9rem;
-}
-
-.whatsapp-actions {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.whatsapp-btn {
-    background: #25D366;
-    color: var(--white);
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    font-size: 0.9rem;
-}
-
-.whatsapp-btn:hover {
-    background: #128C7E;
-    transform: translateY(-2px);
-}
-
-.disconnect-btn {
-    background: var(--soil-red);
-    color: var(--white);
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    font-size: 0.9rem;
-}
-
-.disconnect-btn:hover {
-    background: #C0392B;
-    transform: translateY(-2px);
-}
-
-.qr-code-container {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin: var(--spacing-lg) 0;
-    box-shadow: var(--shadow-sm);
-    text-align: center;
-}
-
-.qr-code-container h4 {
-    color: var(--primary-green);
-    margin-bottom: var(--spacing-md);
-}
-
-.qr-code-wrapper {
-    background: var(--light-gray);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
-    margin: var(--spacing-md) 0;
-    display: inline-block;
-}
-
-.qr-code-wrapper img {
-    max-width: 250px;
-    height: auto;
-    border-radius: var(--radius-sm);
-}
-
-.qr-instructions {
-    color: var(--dark-gray);
-    margin: var(--spacing-md) 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-.refresh-btn {
-    background: var(--accent-orange);
-    color: var(--white);
-    border: none;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-weight: 500;
-}
-
-.refresh-btn:hover {
-    background: #F57C00;
-    transform: translateY(-2px);
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* Responsive design for WhatsApp controls */
-@media (max-width: 768px) {
+    /* Mobile content spacing */
+    .main-content {
+        padding-bottom: 100px; /* Space for bottom nav */
+        padding-left: var(--spacing-3);
+        padding-right: var(--spacing-3);
+    }
+
+    .section {
+        margin: var(--spacing-4) var(--spacing-3);
+        padding: var(--spacing-4);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .section h3 {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-4);
+        line-height: 1.3;
+    }
+
+    /* Mobile forms with better UX */
+    .form-group {
+        margin-bottom: var(--spacing-4);
+        position: relative;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-2);
+        font-weight: 500;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: var(--spacing-3);
+        font-size: 16px; /* Prevents zoom on iOS */
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--border);
+        background: var(--surface);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+        outline: none;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+
+    /* Mobile buttons with better touch targets */
+    .btn {
+        padding: var(--spacing-4) var(--spacing-6);
+        font-size: 1rem;
+        border-radius: var(--radius-lg);
+        min-height: 48px; /* Touch-friendly */
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    .btn:active::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* Mobile cards with better spacing */
+    .card {
+        padding: var(--spacing-4);
+        margin-bottom: var(--spacing-4);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .card h4 {
+        font-size: 1.2rem;
+        margin-bottom: var(--spacing-3);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    /* Mobile grid layout */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+        padding: 0 var(--spacing-2);
+    }
+
+    .quick-actions, 
+    .weather-widget, 
+    .market-updates, 
+    .schemes-widget {
+        padding: var(--spacing-4);
+        border-radius: var(--radius-xl);
+    }
+
+    /* Mobile tables with horizontal scroll */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        margin: var(--spacing-4) 0;
+    }
+
+    .table {
+        font-size: 0.8rem;
+        min-width: 600px;
+        border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-2) var(--spacing-3);
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table th {
+        background: var(--accent);
+        color: var(--text-primary);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    /* Mobile chat interface */
+    .chat-container {
+        height: calc(100vh - 200px);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+    }
+
+    .chat-messages {
+        padding: var(--spacing-3);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-input-container {
+        padding: var(--spacing-3);
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+    }
+
+    .chat-input {
+        padding: var(--spacing-3);
+        font-size: 16px;
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--border);
+        background: var(--background);
+        color: var(--text-primary);
+    }
+
+    /* Mobile WhatsApp controls */
     .whatsapp-controls {
         margin-left: 0;
         margin-top: var(--spacing-md);
         min-width: auto;
+        flex-direction: column;
+        gap: var(--spacing-3);
+        background: var(--surface);
+        padding: var(--spacing-4);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
     }
     
     .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-md);
+        margin-bottom: var(--spacing-4);
+    }
+
+    .qr-code-container {
+        padding: var(--spacing-4);
+        margin: var(--spacing-4) 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+    }
+
+    .qr-code-wrapper img {
+        max-width: 200px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Mobile AI results */
+    .ai-results {
+        padding: var(--spacing-4);
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-top: var(--spacing-4);
+    }
+
+    .ai-results h4 {
+        font-size: 1.3rem;
+        margin-bottom: var(--spacing-3);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .ai-results p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-3);
+    }
+
+    /* Mobile notifications */
+    .notification {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        z-index: 1001;
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-4);
+        font-size: 0.9rem;
+        box-shadow: var(--shadow-xl);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+    }
+
+    /* Mobile header improvements */
+    .header-content {
+        padding: var(--spacing-4);
+        text-align: center;
+    }
+
+    .logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: var(--spacing-2);
+    }
+
+    .dashboard-header h2 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: var(--spacing-3);
+    }
+
+    /* Mobile action buttons */
+    .action-buttons {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-3);
+        padding: 0 var(--spacing-2);
+    }
+
+    .action-btn {
+        padding: var(--spacing-4);
+        font-size: 1rem;
+        min-height: 56px;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-3);
+        transition: all 0.3s ease;
+    }
+
+    .action-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+
+    /* Mobile weather widget */
+    .weather-content {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-3);
+    }
+
+    .weather-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-2);
+    }
+
+    .weather-temp {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .weather-desc {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+
+    /* Mobile chat actions */
+    .chat-actions {
+        display: none; /* Hide on mobile for cleaner UI */
+    }
+
+    /* Mobile loading states */
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: var(--spacing-8);
+    }
+
+    .loading-spinner::after {
+        content: '';
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: var(--spacing-3);
+        padding-bottom: 100px;
+    }
+    
+    .section {
+        margin: var(--spacing-3);
+        padding: var(--spacing-3);
+    }
+
+    .dashboard-grid {
+        gap: var(--spacing-3);
+    }
+    
+    .quick-actions, 
+    .weather-widget, 
+    .market-updates, 
+    .schemes-widget {
+        padding: var(--spacing-3);
+    }
+    
+    .nav-btn span {
+        display: none;
+    }
+
+    .nav-btn {
+        padding: var(--spacing-2);
+        min-height: 50px;
+    }
+
+    .nav-btn i {
+        font-size: 1.2rem;
+    }
+
+    /* Extra Small Mobile */
+    .section h3 {
+        font-size: 1.3rem;
+    }
+
+    .card h4 {
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        padding: var(--spacing-3) var(--spacing-4);
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: var(--spacing-2);
+        font-size: 16px;
+    }
+
+    /* Mobile Typography */
+    .logo-text {
+        font-size: 1.3rem;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .section h3 {
+        font-size: 1.2rem;
+    }
+
+    .card h4 {
+        font-size: 1rem;
+    }
+
+    .btn {
+        font-size: 0.85rem;
+    }
+}
+
+/* Tablet Responsiveness */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-6);
+    }
+
+    .section {
+        margin: var(--spacing-6);
+        padding: var(--spacing-6);
+    }
+
+    .nav-btn {
+        padding: var(--spacing-4);
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: var(--spacing-4) var(--spacing-6);
+        font-size: 1rem;
+    }
+}
+
+/* Large Mobile Landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+    .bottom-nav {
+        position: fixed;
+        top: 0;
+        bottom: auto;
+        border-top: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .main-content {
+        padding-top: 80px;
+        padding-bottom: var(--spacing-4);
+    }
+
+    .section {
+        margin: var(--spacing-3);
+        padding: var(--spacing-3);
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover,
+    .nav-btn:hover,
+    .whatsapp-btn:hover,
+    .disconnect-btn:hover,
+    .refresh-btn:hover {
+        transform: none;
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn:active,
+    .nav-btn:active,
+    .whatsapp-btn:active,
+    .disconnect-btn:active,
+    .refresh-btn:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    /* Larger touch targets */
+    .nav-btn {
+        min-height: 60px;
+        min-width: 60px;
+    }
+
+    .btn {
+        min-height: 48px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        min-height: 48px;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .card,
+    .section,
+    .btn,
+    .nav-btn {
+        border-width: 0.5px;
+    }
+}
+
+/* Dark Mode Support for Mobile */
+@media (prefers-color-scheme: dark) {
+    .qr-code-container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+    }
+
+    .qr-code-container h4 {
+        color: var(--text-primary);
+    }
+
+    .qr-instructions {
+        color: var(--text-secondary);
+    }
+}
+
+/* Accessibility Improvements for Mobile */
+@media (max-width: 768px) {
+    /* Focus states for touch devices */
+    .btn:focus,
+    .nav-btn:focus,
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    /* Better contrast for small screens */
+    .text-muted {
+        color: var(--text-secondary);
+    }
+
+    .text-light {
+        color: var(--text-primary);
+    }
+
+    /* Improved readability */
+    .card p,
+    .section p {
+        line-height: 1.7;
+    }
+
+    /* Better spacing for mobile */
+    .form-group + .form-group {
+        margin-top: var(--spacing-4);
+    }
+
+    .card + .card {
+        margin-top: var(--spacing-4);
     }
 }
