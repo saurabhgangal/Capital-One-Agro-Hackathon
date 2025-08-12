@@ -548,16 +548,27 @@ router.post('/market-updates', async (req, res) => {
   }
 });
 
-// WhatsApp Status
-router.get('/status', (req, res) => {
-  const status = {
-    connected: whatsappClient ? whatsappClient.isConnected : false,
-    authenticated: whatsappClient ? whatsappClient.isAuthenticated : false,
-    qrCode: qrCode ? true : false,
-    timestamp: new Date().toISOString()
-  };
-  
-  res.json({ success: true, status: status });
+
+
+// Disconnect WhatsApp
+router.post('/disconnect', async (req, res) => {
+  try {
+    if (whatsappClient) {
+      await whatsappClient.destroy();
+      whatsappClient = null;
+      isConnected = false;
+      isInitializing = false;
+      qrCode = null;
+      
+      console.log('📱 WhatsApp client disconnected successfully');
+      res.json({ success: true, message: 'WhatsApp disconnected successfully' });
+    } else {
+      res.json({ success: false, message: 'WhatsApp client not found' });
+    }
+  } catch (error) {
+    console.error('WhatsApp disconnect error:', error);
+    res.status(500).json({ success: false, error: 'Failed to disconnect WhatsApp' });
+  }
 });
 
 // Export both router and helper function

@@ -529,6 +529,60 @@
                     </div>
                 </div>
             </section>
+
+            <!-- WhatsApp Section -->
+            <section id="whatsapp-section" class="whatsapp-section" style="display: none;">
+                <div class="section-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>📱 WhatsApp Integration</h3>
+                </div>
+                
+                <div class="whatsapp-content">
+                    <div class="whatsapp-status" id="whatsapp-status">
+                        <div class="status-indicator">
+                            <i class="fas fa-circle"></i>
+                            <span id="status-text">Checking connection...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-code-container" id="qr-code-container" style="display: none;">
+                        <h4>Scan QR Code to Connect WhatsApp</h4>
+                        <div class="qr-code-wrapper">
+                            <img id="qr-code-image" src="" alt="WhatsApp QR Code">
+                        </div>
+                        <p class="qr-instructions">
+                            Open WhatsApp on your phone → Menu → WhatsApp Web → Scan this QR code
+                        </p>
+                        <button id="refresh-qr-btn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh QR Code
+                        </button>
+                    </div>
+                    
+                    <div class="whatsapp-actions">
+                        <button id="connect-whatsapp-btn" class="connect-btn">
+                            <i class="fab fa-whatsapp"></i>
+                            Connect WhatsApp
+                        </button>
+                        <button id="disconnect-whatsapp-btn" class="disconnect-btn" style="display: none;">
+                            <i class="fas fa-times"></i>
+                            Disconnect WhatsApp
+                        </button>
+                    </div>
+                    
+                    <div class="whatsapp-info">
+                        <h4>WhatsApp Features</h4>
+                        <ul>
+                            <li>Receive farming alerts and notifications</li>
+                            <li>Get crop disease detection results</li>
+                            <li>Access market price updates</li>
+                            <li>Receive irrigation reminders</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <!-- Navigation -->
@@ -556,6 +610,10 @@
             <button class="nav-btn" data-section="schemes-chat">
                 <i class="fas fa-landmark"></i>
                 <span>Schemes</span>
+            </button>
+            <button class="nav-btn" data-section="whatsapp">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp</span>
             </button>
         </nav>
     </div>

@@ -1615,6 +1615,296 @@ function showQRCodeModal(qrCodeData) {
     document.body.appendChild(modal);
 }
 
+// New WhatsApp Section Functionality
+class WhatsAppManager {
+    constructor() {
+        this.currentStatus = 'disconnected';
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.startStatusPolling();
+    }
+
+    setupEventListeners() {
+        // WhatsApp section navigation
+        const whatsappNavBtn = document.querySelector('[data-section="whatsapp"]');
+        if (whatsappNavBtn) {
+            whatsappNavBtn.addEventListener('click', () => {
+                this.showWhatsAppSection();
+            });
+        }
+
+        // WhatsApp buttons
+        const connectBtn = document.getElementById('connect-whatsapp-btn');
+        const disconnectBtn = document.getElementById('disconnect-whatsapp-btn');
+        const refreshBtn = document.getElementById('refresh-qr-btn');
+
+        if (connectBtn) {
+            connectBtn.addEventListener('click', () => this.connectWhatsApp());
+        }
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', () => this.disconnectWhatsApp());
+        }
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshQRCode());
+        }
+
+        // Back button
+        const backBtn = document.querySelector('#whatsapp-section .back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => this.hideWhatsAppSection());
+        }
+    }
+
+    showWhatsAppSection() {
+        // Hide all sections
+        document.querySelectorAll('main > section').forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Show WhatsApp section
+        const whatsappSection = document.getElementById('whatsapp-section');
+        if (whatsappSection) {
+            whatsappSection.style.display = 'block';
+        }
+
+        // Update navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const whatsappNavBtn = document.querySelector('[data-section="whatsapp"]');
+        if (whatsappNavBtn) {
+            whatsappNavBtn.classList.add('active');
+        }
+
+        // Initialize WhatsApp
+        this.initializeWhatsApp();
+    }
+
+    hideWhatsAppSection() {
+        // Show dashboard
+        document.querySelectorAll('main > section').forEach(section => {
+            section.style.display = 'none';
+        });
+        const dashboardSection = document.getElementById('dashboard-section');
+        if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+        }
+
+        // Update navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
+        if (dashboardNavBtn) {
+            dashboardNavBtn.classList.add('active');
+        }
+    }
+
+    async initializeWhatsApp() {
+        try {
+            this.showNotification('Initializing WhatsApp connection...', 'info');
+            
+            const response = await fetch('/api/whatsapp/status');
+            const data = await response.json();
+            
+            if (data.success) {
+                if (data.status.isConnected) {
+                    this.updateStatus('connected', 'WhatsApp is connected and ready!');
+                    this.showNotification('WhatsApp is already connected!', 'success');
+                } else if (data.status.hasQRCode) {
+                    this.updateStatus('waiting', 'Waiting for QR code scan...');
+                    this.showNotification('QR code available, please scan to connect', 'info');
+                } else {
+                    this.updateStatus('disconnected', 'WhatsApp is not connected');
+                    this.showNotification('WhatsApp is not connected', 'warning');
+                }
+            } else {
+                this.updateStatus('error', 'Failed to check WhatsApp status');
+                this.showNotification('Failed to check WhatsApp status', 'error');
+            }
+        } catch (error) {
+            console.error('WhatsApp initialization error:', error);
+            this.updateStatus('error', 'Connection error');
+            this.showNotification('Failed to initialize WhatsApp', 'error');
+        }
+    }
+
+    async connectWhatsApp() {
+        try {
+            this.showNotification('Connecting to WhatsApp...', 'info');
+            this.updateStatus('connecting', 'Connecting to WhatsApp...');
+            
+            const response = await fetch('/api/whatsapp/qr');
+            const data = await response.json();
+            
+            if (data.success && data.qrCode) {
+                this.displayQRCode(data.qrCode);
+                this.updateStatus('waiting', 'Scan QR code to connect');
+                this.showNotification('QR code generated! Please scan to connect', 'success');
+            } else {
+                this.updateStatus('error', data.message || 'Failed to generate QR code');
+                this.showNotification(data.message || 'Failed to generate QR code', 'error');
+            }
+        } catch (error) {
+            console.error('WhatsApp connection error:', error);
+            this.updateStatus('error', 'Connection failed');
+            this.showNotification('Failed to connect to WhatsApp', 'error');
+        }
+    }
+
+    async disconnectWhatsApp() {
+        try {
+            this.showNotification('Disconnecting WhatsApp...', 'info');
+            
+            const response = await fetch('/api/whatsapp/disconnect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateStatus('disconnected', 'WhatsApp disconnected');
+                this.hideQRCode();
+                this.showNotification('WhatsApp disconnected successfully', 'success');
+            } else {
+                this.showNotification(data.message || 'Failed to disconnect', 'error');
+            }
+        } catch (error) {
+            console.error('WhatsApp disconnection error:', error);
+            this.showNotification('Failed to disconnect WhatsApp', 'error');
+        }
+    }
+
+    async refreshQRCode() {
+        try {
+            this.showNotification('Refreshing QR code...', 'info');
+            await this.connectWhatsApp();
+        } catch (error) {
+            console.error('QR code refresh error:', error);
+            this.showNotification('Failed to refresh QR code', 'error');
+        }
+    }
+
+    displayQRCode(qrCodeData) {
+        const qrContainer = document.getElementById('qr-code-container');
+        const qrImage = document.getElementById('qr-code-image');
+        
+        if (qrContainer && qrImage) {
+            qrImage.src = qrCodeData;
+            qrContainer.style.display = 'block';
+        }
+    }
+
+    hideQRCode() {
+        const qrContainer = document.getElementById('qr-code-container');
+        if (qrContainer) {
+            qrContainer.style.display = 'none';
+        }
+    }
+
+    updateStatus(status, message) {
+        this.currentStatus = status;
+        const statusText = document.getElementById('status-text');
+        const statusIndicator = document.querySelector('.status-indicator i');
+        const connectBtn = document.getElementById('connect-whatsapp-btn');
+        const disconnectBtn = document.getElementById('disconnect-whatsapp-btn');
+        
+        if (statusText) statusText.textContent = message;
+        
+        if (statusIndicator) {
+            statusIndicator.className = 'fas fa-circle';
+            statusIndicator.style.color = this.getStatusColor(status);
+        }
+        
+        if (connectBtn && disconnectBtn) {
+            switch (status) {
+                case 'connected':
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'block';
+                    break;
+                case 'waiting':
+                case 'connecting':
+                case 'disconnected':
+                case 'error':
+                    connectBtn.style.display = 'block';
+                    disconnectBtn.style.display = 'none';
+                    break;
+            }
+        }
+    }
+
+    getStatusColor(status) {
+        switch (status) {
+            case 'connected': return '#4CAF50';
+            case 'waiting': return '#FF9800';
+            case 'connecting': return '#2196F3';
+            case 'disconnected': return '#9E9E9E';
+            case 'error': return '#f44336';
+            default: return '#9E9E9E';
+        }
+    }
+
+    startStatusPolling() {
+        setInterval(async () => {
+            if (this.currentStatus !== 'disconnected') {
+                try {
+                    const response = await fetch('/api/whatsapp/status');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.status.isConnected) {
+                            this.updateStatus('connected', 'WhatsApp is connected and ready!');
+                            this.hideQRCode();
+                        } else if (data.status.hasQRCode) {
+                            this.updateStatus('waiting', 'Waiting for QR code scan...');
+                        }
+                    }
+                } catch (error) {
+                    console.error('WhatsApp status polling error:', error);
+                }
+            }
+        }, 5000); // Poll every 5 seconds
+    }
+
+    showNotification(message, type = 'info') {
+        // Create a simple notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : '#2196F3'};
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 300px;
+            font-family: Arial, sans-serif;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+}
+
+// Initialize WhatsApp Manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new WhatsAppManager();
+});
+
 // Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
