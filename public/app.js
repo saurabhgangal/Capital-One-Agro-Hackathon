@@ -722,10 +722,11 @@ class KisanAI {
     displayAIIrrigationPlan(data) {
         const resultsDiv = document.getElementById('ai-plan-results');
         const farmInfoDiv = document.getElementById('farm-info');
+        const weatherForecastDiv = document.getElementById('weather-forecast');
         const planContentDiv = document.getElementById('irrigation-plan-content');
         const whatsappStatusDiv = document.getElementById('whatsapp-status');
         
-        if (resultsDiv && farmInfoDiv && planContentDiv && whatsappStatusDiv) {
+        if (resultsDiv && farmInfoDiv && weatherForecastDiv && planContentDiv && whatsappStatusDiv) {
             // Display farm information
             farmInfoDiv.innerHTML = `
                 <h5><i class="fas fa-farm"></i> Farm Details</h5>
@@ -734,6 +735,31 @@ class KisanAI {
                 <p><strong>Location:</strong> ${data.farmDetails.location}</p>
                 <p><strong>Generated:</strong> ${new Date(data.timestamp).toLocaleString('en-IN')}</p>
             `;
+            
+            // Display weather forecast if available
+            if (data.weatherData && data.weatherData.forecast) {
+                const weatherHTML = `
+                    <h5><i class="fas fa-cloud-sun"></i> 7-Day Weather Forecast</h5>
+                    <div class="weather-grid">
+                        ${data.weatherData.forecast.map(day => `
+                            <div class="weather-day">
+                                <div class="date">${new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                                <div class="temp">${day.temperature}°C</div>
+                                <div class="rainfall">${day.rainfall > 0 ? `🌧️ ${day.rainfall}mm` : '☀️ No Rain'}</div>
+                                <div class="humidity">💧 ${day.humidity}%</div>
+                                <div class="wind">💨 ${day.windSpeed} km/h</div>
+                                <div class="recommendation">${day.irrigationRecommendation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                weatherForecastDiv.innerHTML = weatherHTML;
+            } else {
+                weatherForecastDiv.innerHTML = `
+                    <h5><i class="fas fa-exclamation-triangle"></i> Weather Data Unavailable</h5>
+                    <p>Weather forecast could not be retrieved. Irrigation plan will be based on general recommendations.</p>
+                `;
+            }
             
             // Display irrigation plan
             planContentDiv.innerHTML = data.irrigationPlan.replace(/\n/g, '<br>');

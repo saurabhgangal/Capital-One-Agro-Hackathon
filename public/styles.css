@@ -1081,6 +1081,68 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.weather-forecast {
+    background: var(--gradient-blue);
+    padding: var(--spacing-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: var(--spacing-4);
+}
+
+.weather-forecast h5 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-4);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-4);
+}
+
+.weather-day {
+    background: rgba(255, 255, 255, 0.1);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+
+.weather-day .date {
+    font-weight: 600;
+    color: var(--text-accent);
+    margin-bottom: var(--spacing-2);
+}
+
+.weather-day .temp {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.weather-day .rainfall {
+    color: var(--text-success);
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+}
+
+.weather-day .recommendation {
+    background: var(--gradient-warning);
+    padding: var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--spacing-2);
+}
+
 .irrigation-plan {
     background: var(--gradient-success);
     padding: var(--spacing-6);
