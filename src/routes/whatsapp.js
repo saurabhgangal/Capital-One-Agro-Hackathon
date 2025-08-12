@@ -119,9 +119,36 @@ router.get('/status', (req, res) => {
       isConnected: isConnected,
       isInitializing: isInitializing,
       hasQRCode: !!qrCode,
-      clientExists: !!whatsappClient
+      clientExists: !!whatsappClient,
+      whatsappEnabled: process.env.WHATSAPP_ENABLED === 'true'
     }
   });
+});
+
+// Manual WhatsApp initialization
+router.post('/initialize', async (req, res) => {
+  try {
+    if (isInitializing || isConnected) {
+      return res.json({ 
+        success: false, 
+        message: 'WhatsApp is already initializing or connected' 
+      });
+    }
+    
+    console.log('📱 Manual WhatsApp initialization requested...');
+    await initializeWhatsApp();
+    
+    res.json({ 
+      success: true, 
+      message: 'WhatsApp initialization started. Check /qr endpoint for QR code.' 
+    });
+  } catch (error) {
+    console.error('Manual initialization error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to initialize WhatsApp' 
+    });
+  }
 });
 
 // Helper function to send WhatsApp message (used by other routes)

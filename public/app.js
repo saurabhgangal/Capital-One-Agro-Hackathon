@@ -1528,6 +1528,71 @@ function showSchemesChat() {
     }
 }
 
+// Global function to initialize WhatsApp
+async function initializeWhatsApp() {
+    try {
+        const response = await fetch('/api/whatsapp/initialize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('WhatsApp initialization started! Check the QR code endpoint.');
+            // Wait a bit and then check for QR code
+            setTimeout(checkWhatsAppQR, 3000);
+        } else {
+            alert('WhatsApp initialization failed: ' + data.message);
+        }
+    } catch (error) {
+        console.error('WhatsApp initialization error:', error);
+        alert('Failed to initialize WhatsApp. Check console for details.');
+    }
+}
+
+// Check for WhatsApp QR code
+async function checkWhatsAppQR() {
+    try {
+        const response = await fetch('/api/whatsapp/qr');
+        const data = await response.json();
+        
+        if (data.success && data.qrCode) {
+            // Show QR code in a modal
+            showQRCodeModal(data.qrCode);
+        } else {
+            console.log('QR code status:', data);
+        }
+    } catch (error) {
+        console.error('QR code check error:', error);
+    }
+}
+
+// Show QR code modal
+function showQRCodeModal(qrCodeData) {
+    const modal = document.createElement('div');
+    modal.className = 'qr-modal';
+    modal.innerHTML = `
+        <div class="qr-modal-content">
+            <h3>📱 WhatsApp QR Code</h3>
+            <p>Scan this QR code with your WhatsApp mobile app:</p>
+            <img src="${qrCodeData}" alt="WhatsApp QR Code" style="width: 300px; height: 300px;">
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Open WhatsApp on your phone</li>
+                <li>Go to Settings > Linked Devices</li>
+                <li>Tap "Link a Device"</li>
+                <li>Scan this QR code</li>
+            </ol>
+            <button onclick="this.parentElement.parentElement.remove()">Close</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
 // Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
