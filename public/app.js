@@ -1564,6 +1564,12 @@ async function checkWhatsAppQR() {
             showQRCodeModal(data.qrCode);
         } else {
             console.log('QR code status:', data);
+            // If initialization started, wait and try again
+            if (data.message && data.message.includes('initialization started')) {
+                setTimeout(checkWhatsAppQR, 3000);
+            } else {
+                alert('WhatsApp status: ' + data.message);
+            }
         }
     } catch (error) {
         console.error('QR code check error:', error);

@@ -98,8 +98,13 @@ if (process.env.WHATSAPP_ENABLED === 'true') {
   initializeWhatsApp();
 }
 
+// Force initialization for development/testing
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔄 Development mode: WhatsApp can be manually initialized');
+}
+
 // Get WhatsApp QR Code
-router.get('/qr', (req, res) => {
+router.get('/qr', async (req, res) => {
   if (isConnected) {
     res.json({ success: true, message: 'WhatsApp is already connected' });
   } else if (qrCode) {
@@ -107,7 +112,29 @@ router.get('/qr', (req, res) => {
   } else if (isInitializing) {
     res.json({ success: false, message: 'WhatsApp is initializing, please wait...' });
   } else {
-    res.json({ success: false, message: 'WhatsApp not available. Check environment variables.' });
+    // Auto-initialize if not already done
+    try {
+      console.log('📱 Auto-initializing WhatsApp for QR code request...');
+      await initializeWhatsApp();
+      
+      // Wait a bit for QR code generation
+      setTimeout(() => {
+        if (qrCode) {
+          console.log('📱 QR code generated successfully');
+        }
+      }, 2000);
+      
+      res.json({ 
+        success: false, 
+        message: 'WhatsApp initialization started. Please wait and try again in a few seconds.' 
+      });
+    } catch (error) {
+      console.error('Auto-initialization error:', error);
+      res.json({ 
+        success: false, 
+        message: 'Failed to initialize WhatsApp. Try manual initialization.' 
+      });
+    }
   }
 });
 
@@ -120,9 +147,42 @@ router.get('/status', (req, res) => {
       isInitializing: isInitializing,
       hasQRCode: !!qrCode,
       clientExists: !!whatsappClient,
-      whatsappEnabled: process.env.WHATSAPP_ENABLED === 'true'
+      whatsappEnabled: process.env.WHATSAPP_ENABLED === 'true',
+      environment: process.env.NODE_ENV || 'production'
     }
   });
+});
+
+// Test WhatsApp connection
+router.get('/test', async (req, res) => {
+  try {
+    if (!whatsappClient) {
+      return res.json({ 
+        success: false, 
+        message: 'WhatsApp client not initialized',
+        suggestion: 'Try /initialize endpoint first'
+      });
+    }
+    
+    if (!isConnected) {
+      return res.json({ 
+        success: false, 
+        message: 'WhatsApp not connected',
+        suggestion: 'Scan QR code to connect'
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'WhatsApp is ready and connected!',
+      status: 'connected'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
 });
 
 // Manual WhatsApp initialization
@@ -136,6 +196,23 @@ router.post('/initialize', async (req, res) => {
     }
     
     console.log('📱 Manual WhatsApp initialization requested...');
+    
+    // Reset any existing client
+    if (whatsappClient) {
+      try {
+        await whatsappClient.destroy();
+      } catch (e) {
+        console.log('Destroyed existing client');
+      }
+      whatsappClient = null;
+    }
+    
+    // Reset states
+    isConnected = false;
+    isInitializing = false;
+    qrCode = null;
+    
+    // Start initialization
     await initializeWhatsApp();
     
     res.json({ 
