@@ -9,6 +9,7 @@ class KisanAI {
         this.audioChunks = [];
         this.recognition = null;
         this.isVoiceRecording = false;
+        this.whatsappManager = null;
         
         this.init();
         this.initVoiceRecognition();
@@ -24,6 +25,9 @@ class KisanAI {
             this.hideLoadingScreen();
             this.showApp();
         }, 2000);
+
+        // Initialize WhatsApp Manager
+        this.whatsappManager = new WhatsAppManager();
     }
 
     setupEventListeners() {
@@ -673,7 +677,7 @@ class KisanAI {
         }
     }
 
-    displayAIIrrigationPlan(data) {
+    async displayAIIrrigationPlan(data) {
         const resultsDiv = document.getElementById('ai-plan-results');
         const farmInfoDiv = document.getElementById('farm-info');
         const weatherForecastDiv = document.getElementById('weather-forecast');
@@ -719,23 +723,37 @@ class KisanAI {
             planContentDiv.innerHTML = data.irrigationPlan.replace(/\n/g, '<br>');
             
             // Display WhatsApp status
-            if (data.whatsappStatus) {
-                if (data.whatsappStatus.success) {
-                    whatsappStatusDiv.innerHTML = `
-                        <i class="fas fa-check-circle"></i>
-                        ✅ Plan sent to WhatsApp successfully!
-                    `;
+            if (data.farmDetails.phoneNumber) {
+                if (this.whatsappManager && this.whatsappManager.currentStatus === 'connected') {
+                    // Try to send via WhatsApp
+                    const whatsappResult = await this.whatsappManager.sendIrrigationPlanViaWhatsApp(
+                        data.farmDetails.phoneNumber,
+                        {
+                            crop: data.farmDetails.crop,
+                            location: data.farmDetails.location,
+                            soilType: data.farmDetails.soilType,
+                            irrigationPlan: data.irrigationPlan,
+                            tips: data.weatherData?.forecast?.[0]?.irrigationRecommendation || 'Follow the irrigation schedule above'
+                        }
+                    );
+                    
+                    if (whatsappResult.success) {
+                        whatsappStatusDiv.innerHTML = `
+                            <i class="fas fa-check-circle"></i>
+                            ✅ Plan sent to WhatsApp successfully!
+                        `;
+                    } else {
+                        whatsappStatusDiv.innerHTML = `
+                            <i class="fas fa-exclamation-triangle"></i>
+                            ⚠️ WhatsApp delivery failed: ${whatsappResult.message}
+                        `;
+                    }
                 } else {
                     whatsappStatusDiv.innerHTML = `
-                        <i class="fas fa-exclamation-triangle"></i>
-                        ⚠️ WhatsApp delivery failed: ${data.whatsappStatus.error}
+                        <i class="fas fa-info-circle"></i>
+                        ℹ️ Phone number provided but WhatsApp not connected. Connect WhatsApp to receive plans.
                     `;
                 }
-            } else if (data.farmDetails.phoneNumber) {
-                whatsappStatusDiv.innerHTML = `
-                    <i class="fas fa-info-circle"></i>
-                    ℹ️ Phone number provided but WhatsApp not connected
-                `;
             } else {
                 whatsappStatusDiv.innerHTML = `
                     <i class="fas fa-info-circle"></i>
@@ -1615,7 +1633,7 @@ function showQRCodeModal(qrCodeData) {
     document.body.appendChild(modal);
 }
 
-// New WhatsApp Section Functionality
+// WhatsApp Integration for Irrigation Page
 class WhatsAppManager {
     constructor() {
         this.currentStatus = 'disconnected';
@@ -1628,15 +1646,7 @@ class WhatsAppManager {
     }
 
     setupEventListeners() {
-        // WhatsApp section navigation
-        const whatsappNavBtn = document.querySelector('[data-section="whatsapp"]');
-        if (whatsappNavBtn) {
-            whatsappNavBtn.addEventListener('click', () => {
-                this.showWhatsAppSection();
-            });
-        }
-
-        // WhatsApp buttons
+        // WhatsApp buttons in irrigation section
         const connectBtn = document.getElementById('connect-whatsapp-btn');
         const disconnectBtn = document.getElementById('disconnect-whatsapp-btn');
         const refreshBtn = document.getElementById('refresh-qr-btn');
@@ -1651,56 +1661,8 @@ class WhatsAppManager {
             refreshBtn.addEventListener('click', () => this.refreshQRCode());
         }
 
-        // Back button
-        const backBtn = document.querySelector('#whatsapp-section .back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => this.hideWhatsAppSection());
-        }
-    }
-
-    showWhatsAppSection() {
-        // Hide all sections
-        document.querySelectorAll('main > section').forEach(section => {
-            section.style.display = 'none';
-        });
-
-        // Show WhatsApp section
-        const whatsappSection = document.getElementById('whatsapp-section');
-        if (whatsappSection) {
-            whatsappSection.style.display = 'block';
-        }
-
-        // Update navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const whatsappNavBtn = document.querySelector('[data-section="whatsapp"]');
-        if (whatsappNavBtn) {
-            whatsappNavBtn.classList.add('active');
-        }
-
-        // Initialize WhatsApp
+        // Initialize WhatsApp when irrigation section is shown
         this.initializeWhatsApp();
-    }
-
-    hideWhatsAppSection() {
-        // Show dashboard
-        document.querySelectorAll('main > section').forEach(section => {
-            section.style.display = 'none';
-        });
-        const dashboardSection = document.getElementById('dashboard-section');
-        if (dashboardSection) {
-            dashboardSection.style.display = 'block';
-        }
-
-        // Update navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
-        if (dashboardNavBtn) {
-            dashboardNavBtn.classList.add('active');
-        }
     }
 
     async initializeWhatsApp() {
@@ -1897,6 +1859,54 @@ class WhatsAppManager {
                 notification.remove();
             }
         }, 5000);
+    }
+
+    // Send irrigation plan via WhatsApp
+    async sendIrrigationPlanViaWhatsApp(phoneNumber, planData) {
+        try {
+            if (!phoneNumber) {
+                return { success: false, message: 'No phone number provided' };
+            }
+
+            if (this.currentStatus !== 'connected') {
+                return { success: false, message: 'WhatsApp not connected' };
+            }
+
+            const message = this.formatIrrigationPlanMessage(planData);
+            
+            const response = await fetch('/api/whatsapp/send-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phoneNumber: phoneNumber,
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('WhatsApp send error:', error);
+            return { success: false, message: 'Failed to send via WhatsApp' };
+        }
+    }
+
+    formatIrrigationPlanMessage(planData) {
+        return `🌾 *Your 7-Day Smart Irrigation Plan*
+
+*Crop:* ${planData.crop}
+*Location:* ${planData.location}
+*Soil Type:* ${planData.soilType}
+
+*Irrigation Schedule:*
+${planData.irrigationPlan}
+
+*Tips:* ${planData.tips}
+
+Generated by Kisan AI Assistant 🚜
+Date: ${new Date().toLocaleDateString()}`;
     }
 }
 

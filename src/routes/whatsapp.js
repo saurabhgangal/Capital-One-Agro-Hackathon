@@ -571,5 +571,44 @@ router.post('/disconnect', async (req, res) => {
   }
 });
 
+// Send WhatsApp Message
+router.post('/send-message', async (req, res) => {
+  try {
+    const { phoneNumber, message } = req.body;
+    
+    if (!phoneNumber || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Phone number and message are required' 
+      });
+    }
+    
+    if (!whatsappClient || !isConnected) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'WhatsApp not connected' 
+      });
+    }
+    
+    const formattedNumber = phoneNumber.replace(/\D/g, '');
+    const chatId = `${formattedNumber}@c.us`;
+    
+    await whatsappClient.sendMessage(chatId, message);
+    
+    res.json({
+      success: true,
+      message: 'Message sent successfully',
+      phoneNumber: phoneNumber,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send message' 
+    });
+  }
+});
+
 // Export both router and helper function
 module.exports = { router, sendWhatsAppMessage };
