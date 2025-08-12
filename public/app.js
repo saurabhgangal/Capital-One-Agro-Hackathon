@@ -99,11 +99,7 @@ class KisanAI {
             analyzeMarketBtn.addEventListener('click', () => this.analyzeMarket());
         }
 
-        // Irrigation schedule
-        const irrigationScheduleBtn = document.getElementById('irrigation-schedule-btn');
-        if (irrigationScheduleBtn) {
-            irrigationScheduleBtn.addEventListener('click', () => this.getIrrigationSchedule());
-        }
+
 
         // AI Irrigation Plan form
         const aiIrrigationForm = document.getElementById('ai-irrigation-form');
@@ -603,65 +599,7 @@ class KisanAI {
         }
     }
 
-    async getIrrigationSchedule() {
-        const cropSelect = document.getElementById('irrigation-crop-select');
-        const soilTypeSelect = document.getElementById('soil-type-select');
-        
-        const crop = cropSelect.value;
-        const soilType = soilTypeSelect.value;
-        
-        if (!crop || !soilType) {
-            this.showNotification('Please select crop and soil type', 'warning');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/irrigation/irrigation-schedule', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    crop: crop,
-                    soilType: soilType,
-                    weatherData: { temperature: 30, humidity: 60, rainfall: 0 },
-                    waterAvailability: 'good',
-                    irrigationMethod: 'drip',
-                    growthStage: 'vegetative'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.displayIrrigationSchedule(data.irrigationSchedule);
-            } else {
-                throw new Error(data.error);
-            }
-            
-        } catch (error) {
-            console.error('Irrigation schedule error:', error);
-            this.showNotification('Failed to get irrigation schedule', 'error');
-        }
-    }
 
-    displayIrrigationSchedule(schedule) {
-        const irrigationSchedule = document.getElementById('irrigation-schedule');
-        const scheduleContent = document.getElementById('schedule-content');
-        
-        if (irrigationSchedule && scheduleContent) {
-            scheduleContent.innerHTML = `
-                <div class="schedule-text">
-                    ${schedule.replace(/\n/g, '<br>')}
-                </div>
-            `;
-            
-            irrigationSchedule.style.display = 'block';
-            
-            // Scroll to result
-            irrigationSchedule.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
 
     async generateAIIrrigationPlan() {
         const cropSelect = document.getElementById('ai-crop-select');
