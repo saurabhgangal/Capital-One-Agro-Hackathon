@@ -665,8 +665,15 @@ body {
 .section-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--spacing-4);
     margin-bottom: var(--spacing-6);
+}
+
+.whatsapp-controls {
+    display: flex;
+    gap: var(--spacing-3);
+    align-items: center;
 }
 
 .back-btn {

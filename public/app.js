@@ -1535,6 +1535,8 @@ async function getWhatsAppQR() {
         const response = await fetch('/api/whatsapp/qr');
         const data = await response.json();
         
+        console.log('QR response:', data);
+        
         if (data.success && data.qrCode) {
             // Show QR code immediately
             showQRCodeModal(data.qrCode);
