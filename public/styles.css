@@ -713,21 +713,28 @@ body {
     background: var(--accent-orange);
     color: var(--white);
     border: 2px solid var(--accent-orange);
-    padding: var(--spacing-3);
-    border-radius: var(--radius-full);
-    width: 48px;
-    height: 48px;
+    padding: 12px 16px;
+    border-radius: var(--radius-xl);
     cursor: pointer;
     transition: all 0.3s ease;
+    min-width: 80px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     box-shadow: var(--shadow-md);
 }
 
 .voice-btn i, .image-btn i {
     color: white;
-    font-size: 18px;
+    font-size: 16px;
+}
+
+.voice-btn .btn-text, .image-btn .btn-text {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .voice-btn:hover, .image-btn:hover {
@@ -995,23 +1002,30 @@ body {
     background: var(--primary-green);
     color: var(--white);
     border: 2px solid var(--primary-green);
-    padding: var(--spacing-4);
+    padding: 12px 16px;
     border-radius: var(--radius-xl);
     cursor: pointer;
     transition: all 0.3s ease;
-    width: 56px;
-    height: 56px;
+    min-width: 80px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     box-shadow: var(--shadow-md);
     font-weight: 600;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .send-btn i {
     color: white;
-    font-size: 18px;
+    font-size: 16px;
+}
+
+.send-btn .btn-text {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .send-btn:hover {
@@ -1568,17 +1582,32 @@ body {
 
 /* Voice Interface Styles */
 .voice-input-btn {
-    background: var(--primary);
+    background: var(--accent-orange);
     color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
+    border: 2px solid var(--accent-orange);
+    padding: 12px 16px;
+    border-radius: var(--radius-xl);
     margin-left: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    box-shadow: var(--shadow-md);
+}
+
+.voice-input-btn i {
+    color: white;
+    font-size: 16px;
+}
+
+.voice-input-btn .btn-text {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 .voice-input-btn:hover {
