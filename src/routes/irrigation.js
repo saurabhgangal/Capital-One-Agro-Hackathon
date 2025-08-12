@@ -215,6 +215,11 @@ Make this plan practical, location-specific, weather-smart, and easy to follow f
     let whatsappStatus = null;
     if (phoneNumber) {
       try {
+        // Check if WhatsApp function is available
+        if (typeof sendWhatsAppMessage !== 'function') {
+          throw new Error('WhatsApp service not available');
+        }
+
         const message = `🌾 *KISAN AI - 7-Day Smart Irrigation Plan*
 
 *Crop:* ${crop}

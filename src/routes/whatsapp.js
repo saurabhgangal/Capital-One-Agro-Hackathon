@@ -5,9 +5,13 @@ const qrcode = require('qrcode');
 const cron = require('node-cron');
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize OpenAI only if API key is available
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+}
 
 // Initialize WhatsApp client
 let whatsappClient = null;
@@ -144,9 +148,6 @@ const sendWhatsAppMessage = async (phoneNumber, message) => {
     throw error;
   }
 };
-
-// Export the function for use in other routes
-module.exports = { sendWhatsAppMessage };
 
 // Send WhatsApp Message
 router.post('/send-message', async (req, res) => {
@@ -344,6 +345,10 @@ router.post('/weather-alerts', async (req, res) => {
 // Generate weather advice using AI
 async function generateWeatherAdvice(location, weatherData, crop) {
   try {
+    if (!openai) {
+      return 'मौसम के अनुसार अपनी फसल की देखभाल करें।';
+    }
+    
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -406,4 +411,5 @@ router.get('/status', (req, res) => {
   res.json({ success: true, status: status });
 });
 
-module.exports = router;
+// Export both router and helper function
+module.exports = { router, sendWhatsAppMessage };

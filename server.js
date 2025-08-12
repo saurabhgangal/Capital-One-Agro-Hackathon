@@ -59,7 +59,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const aiRoutes = require('./src/routes/ai');
 const marketRoutes = require('./src/routes/market');
 const creditRoutes = require('./src/routes/credit');
-const whatsappRoutes = require('./src/routes/whatsapp');
+const { router: whatsappRoutes } = require('./src/routes/whatsapp');
 const userRoutes = require('./src/routes/user');
 const irrigationRoutes = require('./src/routes/irrigation');
         const customDataRoutes = require('./src/routes/custom-data');
