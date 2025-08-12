@@ -27,11 +27,7 @@ const initializeWhatsApp = async () => {
     return;
   }
 
-  // Check if WhatsApp is enabled
-  if (process.env.WHATSAPP_ENABLED !== 'true') {
-    console.log('📱 WhatsApp is disabled. Set WHATSAPP_ENABLED=true to enable');
-    return;
-  }
+  console.log('📱 Starting WhatsApp initialization...');
 
   try {
     isInitializing = true;
