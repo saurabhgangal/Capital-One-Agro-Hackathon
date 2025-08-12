@@ -1528,51 +1528,43 @@ function showSchemesChat() {
     }
 }
 
-// Global function to initialize WhatsApp
-async function initializeWhatsApp() {
+// Global function to get WhatsApp QR code - SUPER SIMPLE
+async function getWhatsAppQR() {
     try {
-        const response = await fetch('/api/whatsapp/initialize', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            alert('WhatsApp initialization started! Check the QR code endpoint.');
-            // Wait a bit and then check for QR code
-            setTimeout(checkWhatsAppQR, 3000);
-        } else {
-            alert('WhatsApp initialization failed: ' + data.message);
-        }
-    } catch (error) {
-        console.error('WhatsApp initialization error:', error);
-        alert('Failed to initialize WhatsApp. Check console for details.');
-    }
-}
-
-// Check for WhatsApp QR code
-async function checkWhatsAppQR() {
-    try {
+        console.log('🔍 Getting WhatsApp QR code...');
         const response = await fetch('/api/whatsapp/qr');
         const data = await response.json();
         
         if (data.success && data.qrCode) {
-            // Show QR code in a modal
+            // Show QR code immediately
             showQRCodeModal(data.qrCode);
         } else {
             console.log('QR code status:', data);
-            // If initialization started, wait and try again
-            if (data.message && data.message.includes('initialization started')) {
-                setTimeout(checkWhatsAppQR, 3000);
-            } else {
-                alert('WhatsApp status: ' + data.message);
-            }
+            alert('WhatsApp status: ' + data.message);
         }
     } catch (error) {
-        console.error('QR code check error:', error);
+        console.error('QR code error:', error);
+        alert('Failed to get QR code. Check console for details.');
+    }
+}
+
+// Check WhatsApp status
+async function checkWhatsAppStatus() {
+    try {
+        const response = await fetch('/api/whatsapp/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            const status = data.status;
+            alert(`WhatsApp Status:\n` +
+                  `Connected: ${status.isConnected ? '✅ Yes' : '❌ No'}\n` +
+                  `Initializing: ${status.isInitializing ? '🔄 Yes' : '❌ No'}\n` +
+                  `Has QR Code: ${status.hasQRCode ? '📱 Yes' : '❌ No'}\n` +
+                  `Client Exists: ${status.clientExists ? '✅ Yes' : '❌ No'}`);
+        }
+    } catch (error) {
+        console.error('Status check error:', error);
+        alert('Failed to check status');
     }
 }
 

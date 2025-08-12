@@ -93,18 +93,14 @@ const initializeWhatsApp = async () => {
   }
 };
 
-// Initialize WhatsApp on startup only if enabled
-if (process.env.WHATSAPP_ENABLED === 'true') {
-  initializeWhatsApp();
-}
+// Always initialize WhatsApp on startup for simplicity
+console.log('🔄 Starting WhatsApp initialization...');
+initializeWhatsApp();
 
-// Force initialization for development/testing
-if (process.env.NODE_ENV === 'development') {
-  console.log('🔄 Development mode: WhatsApp can be manually initialized');
-}
-
-// Get WhatsApp QR Code
+// Get WhatsApp QR Code - SUPER SIMPLE
 router.get('/qr', async (req, res) => {
+  console.log('📱 QR code requested. Status:', { isConnected, isInitializing, hasQR: !!qrCode });
+  
   if (isConnected) {
     res.json({ success: true, message: 'WhatsApp is already connected' });
   } else if (qrCode) {
@@ -112,28 +108,21 @@ router.get('/qr', async (req, res) => {
   } else if (isInitializing) {
     res.json({ success: false, message: 'WhatsApp is initializing, please wait...' });
   } else {
-    // Auto-initialize if not already done
+    // Force immediate initialization
+    console.log('📱 Force initializing WhatsApp...');
     try {
-      console.log('📱 Auto-initializing WhatsApp for QR code request...');
       await initializeWhatsApp();
+      // Wait 5 seconds for QR code
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
-      // Wait a bit for QR code generation
-      setTimeout(() => {
-        if (qrCode) {
-          console.log('📱 QR code generated successfully');
-        }
-      }, 2000);
-      
-      res.json({ 
-        success: false, 
-        message: 'WhatsApp initialization started. Please wait and try again in a few seconds.' 
-      });
+      if (qrCode) {
+        res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
+      } else {
+        res.json({ success: false, message: 'QR code not generated. Try again.' });
+      }
     } catch (error) {
-      console.error('Auto-initialization error:', error);
-      res.json({ 
-        success: false, 
-        message: 'Failed to initialize WhatsApp. Try manual initialization.' 
-      });
+      console.error('Force initialization error:', error);
+      res.json({ success: false, message: 'Failed to initialize WhatsApp' });
     }
   }
 });
