@@ -1,0 +1,347 @@
+const express = require('express');
+const router = express.Router();
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode');
+const cron = require('node-cron');
+const OpenAI = require('openai');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// Initialize WhatsApp client
+let whatsappClient = null;
+let qrCode = null;
+
+// Initialize WhatsApp
+const initializeWhatsApp = async () => {
+  try {
+    whatsappClient = new Client({
+      authStrategy: new LocalAuth(),
+      puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      }
+    });
+
+    whatsappClient.on('qr', async (qr) => {
+      qrCode = await qrcode.toDataURL(qr);
+      console.log('📱 WhatsApp QR Code generated');
+    });
+
+    whatsappClient.on('ready', () => {
+      console.log('✅ WhatsApp client is ready!');
+      qrCode = null;
+    });
+
+    whatsappClient.on('authenticated', () => {
+      console.log('🔐 WhatsApp client authenticated');
+    });
+
+    whatsappClient.on('auth_failure', (msg) => {
+      console.error('❌ WhatsApp authentication failed:', msg);
+    });
+
+    await whatsappClient.initialize();
+  } catch (error) {
+    console.error('WhatsApp initialization error:', error);
+  }
+};
+
+// Initialize WhatsApp on startup
+initializeWhatsApp();
+
+// Get WhatsApp QR Code
+router.get('/qr', (req, res) => {
+  if (qrCode) {
+    res.json({ success: true, qrCode: qrCode });
+  } else if (whatsappClient && whatsappClient.isConnected) {
+    res.json({ success: true, message: 'WhatsApp is already connected' });
+  } else {
+    res.json({ success: false, message: 'QR code not available' });
+  }
+});
+
+// Helper function to send WhatsApp message (used by other routes)
+const sendWhatsAppMessage = async (phoneNumber, message) => {
+  try {
+    if (!whatsappClient || !whatsappClient.isConnected) {
+      throw new Error('WhatsApp not connected');
+    }
+
+    // Format phone number for WhatsApp
+    const formattedNumber = phoneNumber.replace(/\D/g, '');
+    const chatId = `${formattedNumber}@c.us`;
+
+    // Send message
+    await whatsappClient.sendMessage(chatId, message);
+    
+    return { success: true, message: 'Message sent successfully' };
+  } catch (error) {
+    console.error('Send WhatsApp message error:', error);
+    throw error;
+  }
+};
+
+// Export the function for use in other routes
+module.exports = { sendWhatsAppMessage };
+
+// Send WhatsApp Message
+router.post('/send-message', async (req, res) => {
+  try {
+    const { phoneNumber, message, language = 'en' } = req.body;
+    
+    if (!whatsappClient || !whatsappClient.isConnected) {
+      return res.status(400).json({ success: false, error: 'WhatsApp not connected' });
+    }
+
+    // Format phone number for WhatsApp
+    const formattedNumber = phoneNumber.replace(/\D/g, '');
+    const chatId = `${formattedNumber}@c.us`;
+
+    // Send message
+    await whatsappClient.sendMessage(chatId, message);
+    
+    res.json({
+      success: true,
+      message: 'Message sent successfully',
+      phoneNumber: phoneNumber,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send message' });
+  }
+});
+
+// Schedule WhatsApp Reminders
+router.post('/schedule-reminder', async (req, res) => {
+  try {
+    const { phoneNumber, message, scheduleTime, frequency, crop, task } = req.body;
+    
+    // Validate schedule time
+    const scheduleDate = new Date(scheduleTime);
+    if (isNaN(scheduleDate.getTime())) {
+      return res.status(400).json({ success: false, error: 'Invalid schedule time' });
+    }
+
+    // Create reminder task
+    const reminderTask = cron.schedule(scheduleTime, async () => {
+      try {
+        if (whatsappClient && whatsappClient.isConnected) {
+          const formattedNumber = phoneNumber.replace(/\D/g, '');
+          const chatId = `${formattedNumber}@c.us`;
+          
+          // Send reminder message
+          await whatsappClient.sendMessage(chatId, message);
+          console.log(`📅 Reminder sent to ${phoneNumber}: ${task}`);
+        }
+      } catch (error) {
+        console.error('Reminder sending error:', error);
+      }
+    }, {
+      scheduled: true,
+      timezone: "Asia/Kolkata"
+    });
+
+    res.json({
+      success: true,
+      message: 'Reminder scheduled successfully',
+      phoneNumber: phoneNumber,
+      scheduleTime: scheduleTime,
+      task: task,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Schedule reminder error:', error);
+    res.status(500).json({ success: false, error: 'Failed to schedule reminder' });
+  }
+});
+
+// Automated Crop Care Reminders
+router.post('/crop-reminders', async (req, res) => {
+  try {
+    const { phoneNumber, crop, plantingDate, region, language = 'hi' } = req.body;
+    
+    // Calculate crop care schedule based on planting date
+    const planting = new Date(plantingDate);
+    const today = new Date();
+    const daysSincePlanting = Math.floor((today - planting) / (1000 * 60 * 60 * 24));
+    
+    // Generate crop-specific reminders
+    const reminders = generateCropReminders(crop, daysSincePlanting, region, language);
+    
+    // Schedule reminders
+    reminders.forEach((reminder, index) => {
+      const scheduleTime = new Date(planting.getTime() + (reminder.days * 24 * 60 * 60 * 1000));
+      
+      cron.schedule(scheduleTime, async () => {
+        try {
+          if (whatsappClient && whatsappClient.isConnected) {
+            const formattedNumber = phoneNumber.replace(/\D/g, '');
+            const chatId = `${formattedNumber}@c.us`;
+            
+            await whatsappClient.sendMessage(chatId, reminder.message);
+            console.log(`🌱 Crop reminder sent: ${reminder.task}`);
+          }
+        } catch (error) {
+          console.error('Crop reminder error:', error);
+        }
+      }, {
+        scheduled: true,
+        timezone: "Asia/Kolkata"
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'Crop reminders scheduled successfully',
+      crop: crop,
+      reminders: reminders.length,
+      phoneNumber: phoneNumber,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Crop reminders error:', error);
+    res.status(500).json({ success: false, error: 'Failed to schedule crop reminders' });
+  }
+});
+
+// Generate crop-specific reminders
+function generateCropReminders(crop, daysSincePlanting, region, language) {
+  const reminders = [];
+  
+  // Common crop care schedule
+  const careSchedule = {
+    'rice': [
+      { days: 7, task: 'seedling_care', message: `🌾 ${crop} के पौधों की देखभाल करें। पानी का स्तर बनाए रखें।` },
+      { days: 15, task: 'fertilizer', message: `🌱 ${crop} में खाद डालने का समय आ गया है।` },
+      { days: 30, task: 'pest_check', message: `🐛 ${crop} में कीटों की जांच करें।` },
+      { days: 60, task: 'harvest_prep', message: `📅 ${crop} की कटाई की तैयारी शुरू करें।` }
+    ],
+    'wheat': [
+      { days: 10, task: 'irrigation', message: `💧 ${crop} में सिंचाई करें।` },
+      { days: 25, task: 'weed_control', message: `🌿 ${crop} में खरपतवार नियंत्रण करें।` },
+      { days: 45, task: 'disease_check', message: `🔍 ${crop} में रोगों की जांच करें।` },
+      { days: 90, task: 'harvest', message: `🌾 ${crop} की कटाई का समय आ गया है।` }
+    ],
+    'cotton': [
+      { days: 5, task: 'thinning', message: `🌱 ${crop} में पतले पौधे हटाएं।` },
+      { days: 20, task: 'pest_control', message: `🐛 ${crop} में कीट नियंत्रण करें।` },
+      { days: 40, task: 'irrigation', message: `💧 ${crop} में सिंचाई करें।` },
+      { days: 120, task: 'harvest', message: `🌿 ${crop} की कटाई शुरू करें।` }
+    ]
+  };
+
+  const schedule = careSchedule[crop.toLowerCase()] || careSchedule['rice'];
+  
+  schedule.forEach(item => {
+    if (item.days > daysSincePlanting) {
+      reminders.push({
+        days: item.days,
+        task: item.task,
+        message: item.message
+      });
+    }
+  });
+
+  return reminders;
+}
+
+// Weather Alerts via WhatsApp
+router.post('/weather-alerts', async (req, res) => {
+  try {
+    const { phoneNumber, location, weatherData, crop } = req.body;
+    
+    // Generate weather-based farming advice
+    const weatherAdvice = await generateWeatherAdvice(location, weatherData, crop);
+    
+    // Send weather alert
+    if (whatsappClient && whatsappClient.isConnected) {
+      const formattedNumber = phoneNumber.replace(/\D/g, '');
+      const chatId = `${formattedNumber}@c.us`;
+      
+      const alertMessage = `🌤️ मौसम अलर्ट - ${location}\n\n${weatherAdvice}\n\nकृपया अपनी फसल की सुरक्षा करें।`;
+      
+      await whatsappClient.sendMessage(chatId, alertMessage);
+    }
+
+    res.json({
+      success: true,
+      message: 'Weather alert sent successfully',
+      phoneNumber: phoneNumber,
+      location: location,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Weather alert error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send weather alert' });
+  }
+});
+
+// Generate weather advice using AI
+async function generateWeatherAdvice(location, weatherData, crop) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are a weather-based farming advisor for Indian farmers. Provide brief, actionable advice in Hindi based on weather conditions.`
+        },
+        {
+          role: "user",
+          content: `Location: ${location}, Weather: ${JSON.stringify(weatherData)}, Crop: ${crop}. Provide farming advice in Hindi.`
+        }
+      ],
+      max_tokens: 200,
+      temperature: 0.7
+    });
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error('Weather advice generation error:', error);
+    return 'मौसम के अनुसार अपनी फसल की देखभाल करें।';
+  }
+}
+
+// Market Price Updates
+router.post('/market-updates', async (req, res) => {
+  try {
+    const { phoneNumber, crop, location, priceData } = req.body;
+    
+    const updateMessage = `📊 बाजार अपडेट - ${crop}\n\nस्थान: ${location}\nवर्तमान मूल्य: ₹${priceData.currentPrice}/quintal\n\n${priceData.trend === 'up' ? '📈' : '📉'} ${priceData.trend === 'up' ? 'मूल्य बढ़ रहा है' : 'मूल्य गिर रहा है'}`;
+    
+    if (whatsappClient && whatsappClient.isConnected) {
+      const formattedNumber = phoneNumber.replace(/\D/g, '');
+      const chatId = `${formattedNumber}@c.us`;
+      
+      await whatsappClient.sendMessage(chatId, updateMessage);
+    }
+
+    res.json({
+      success: true,
+      message: 'Market update sent successfully',
+      phoneNumber: phoneNumber,
+      crop: crop,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Market update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send market update' });
+  }
+});
+
+// WhatsApp Status
+router.get('/status', (req, res) => {
+  const status = {
+    connected: whatsappClient ? whatsappClient.isConnected : false,
+    authenticated: whatsappClient ? whatsappClient.isAuthenticated : false,
+    qrCode: qrCode ? true : false,
+    timestamp: new Date().toISOString()
+  };
+  
+  res.json({ success: true, status: status });
+});
+
+module.exports = router;

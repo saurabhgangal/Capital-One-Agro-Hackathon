@@ -1,0 +1,80 @@
+{
+  "name": "Local Wheat Prices 2024",
+  "type": "crop_prices",
+  "description": "Wheat price data from local mandis in Punjab region for 2024",
+  "location": "Punjab",
+  "source": "Local Mandi Records",
+  "data": {
+    "mandi_locations": [
+      "Amritsar",
+      "Ludhiana", 
+      "Jalandhar",
+      "Patiala",
+      "Bathinda"
+    ],
+    "price_trends": {
+      "January": {
+        "min_price": 2150,
+        "max_price": 2250,
+        "avg_price": 2200,
+        "unit": "₹/quintal"
+      },
+      "February": {
+        "min_price": 2180,
+        "max_price": 2280,
+        "avg_price": 2230,
+        "unit": "₹/quintal"
+      },
+      "March": {
+        "min_price": 2200,
+        "max_price": 2300,
+        "avg_price": 2250,
+        "unit": "₹/quintal"
+      },
+      "April": {
+        "min_price": 2220,
+        "max_price": 2320,
+        "avg_price": 2270,
+        "unit": "₹/quintal"
+      }
+    },
+    "quality_factors": {
+      "protein_content": "11-13%",
+      "moisture": "< 12%",
+      "foreign_matter": "< 2%",
+      "damaged_grains": "< 3%"
+    },
+    "market_insights": [
+      "Prices peak during March-April due to reduced supply",
+      "Quality wheat commands 50-100₹ premium per quintal",
+      "Export demand influences local prices significantly",
+      "Government MSP provides price floor at ₹2125/quintal"
+    ],
+    "local_varieties": [
+      {
+        "name": "PBW 343",
+        "avg_price": 2250,
+        "demand": "High",
+        "suitable_regions": ["Amritsar", "Ludhiana"]
+      },
+      {
+        "name": "HD 2967", 
+        "avg_price": 2200,
+        "demand": "Medium",
+        "suitable_regions": ["Jalandhar", "Patiala"]
+      },
+      {
+        "name": "DBW 17",
+        "avg_price": 2180,
+        "demand": "Medium",
+        "suitable_regions": ["Bathinda", "Mansa"]
+      }
+    ],
+    "storage_recommendations": {
+      "optimal_temperature": "20-25°C",
+      "humidity": "60-70%",
+      "storage_duration": "6-12 months",
+      "storage_methods": ["Warehouse", "Cold Storage", "Traditional Bins"]
+    }
+  }
+}

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚜 Kisan AI - Your Smart Farming Assistant</title>
+    <meta name="description" content="AI-powered agriculture assistant for Indian farmers with multilingual support, crop disease detection, and market insights">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-icon">🚜</div>
+            <h2>Kisan AI</h2>
+            <p>Your Smart Farming Assistant</p>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🚜</div>
+                    <h1 class="logo-text">Kisan AI</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="language-toggle" class="language-toggle">
+                        <i class="fas fa-globe"></i>
+                        <span>हिंदी</span>
+                    </button>
+                    <button id="profile-btn" class="profile-btn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h2>🌾 Welcome to Your Farm Dashboard</h2>
+                    <p>Get personalized insights and recommendations for your farming success</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h3>🚀 Quick Actions</h3>
+                        <div class="action-buttons">
+                            <button class="action-btn" data-action="chat">
+                                <i class="fas fa-comments"></i>
+                                <span>AI Chat</span>
+                            </button>
+                            <button class="action-btn" data-action="disease">
+                                <i class="fas fa-search"></i>
+                                <span>Crop Disease</span>
+                            </button>
+                            <button class="action-btn" data-action="market">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Market Prices</span>
+                            </button>
+                            <button class="action-btn" data-action="irrigation">
+                                <i class="fas fa-tint"></i>
+                                <span>Irrigation</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Weather Widget -->
+                    <div class="weather-widget">
+                        <h3>🌤️ Weather Update</h3>
+                        <div class="weather-content">
+                            <div class="weather-icon">☀️</div>
+                            <div class="weather-info">
+                                <h4>Delhi, India</h4>
+                                <p class="temperature">32°C</p>
+                                <p class="condition">Sunny</p>
+                            </div>
+                        </div>
+                        <button class="weather-details-btn">View Details</button>
+                    </div>
+
+                    <!-- Market Updates -->
+                    <div class="market-updates">
+                        <h3>📊 Market Updates</h3>
+                        <div class="market-list">
+                            <div class="market-item">
+                                <span class="crop">Wheat</span>
+                                <span class="price">₹2,150/quintal</span>
+                                <span class="trend up">📈 +5%</span>
+                            </div>
+                            <div class="market-item">
+                                <span class="crop">Rice</span>
+                                <span class="price">₹1,850/quintal</span>
+                                <span class="trend down">📉 -2%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Government Schemes -->
+                    <div class="schemes-widget">
+                        <h3>🏛️ Government Schemes</h3>
+                        <div class="schemes-list">
+                            <div class="scheme-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>PM-KISAN - ₹6,000/year</span>
+                            </div>
+                            <div class="scheme-item">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Crop Insurance Available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Chat Section -->
+            <section id="chat-section" class="chat-section" style="display: none;">
+                <div class="chat-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>🤖 AI Farming Assistant</h3>
+                    <div class="chat-actions">
+                        <button id="voice-btn" class="voice-btn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="image-btn" class="image-btn">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message ai-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <p>नमस्ते! मैं आपका AI कृषि सहायक हूं। मैं आपकी फसल, मौसम, बाजार और सरकारी योजनाओं के बारे में मदद कर सकता हूं। क्या आप कोई सवाल पूछना चाहते हैं?</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chat-input" placeholder="अपना सवाल यहाँ लिखें..." class="chat-input">
+                        <button id="send-btn" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Disease Detection Section -->
+            <section id="disease-section" class="disease-section" style="display: none;">
+                <div class="section-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>🔍 Crop Disease Detection</h3>
+                </div>
+                
+                <div class="disease-content">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h4>Upload Crop Image</h4>
+                        <p>Click to upload or drag and drop</p>
+                        <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="analysis-result" id="analysis-result" style="display: none;">
+                        <h4>Analysis Result</h4>
+                        <div class="result-content" id="result-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Market Section -->
+            <section id="market-section" class="market-section" style="display: none;">
+                <div class="section-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>📊 Market Analysis</h3>
+                </div>
+                
+                <div class="market-content">
+                    <div class="market-form">
+                        <div class="form-group">
+                            <label>Crop</label>
+                            <select id="crop-select">
+                                <option value="">Select Crop</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="rice">Rice</option>
+                                <option value="cotton">Cotton</option>
+                                <option value="sugarcane">Sugarcane</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="location-input" placeholder="Enter your location">
+                        </div>
+                        <button id="analyze-market-btn" class="analyze-btn">Analyze Market</button>
+                    </div>
+                    
+                    <div class="market-analysis" id="market-analysis" style="display: none;">
+                        <h4>Market Analysis</h4>
+                        <div class="analysis-content" id="market-analysis-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Irrigation Section -->
+            <section id="irrigation-section" class="irrigation-section" style="display: none;">
+                <div class="section-header">
+                    <button class="back-btn" data-back="dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>💧 Irrigation Management</h3>
+                </div>
+                
+                <div class="irrigation-content">
+                    <div class="irrigation-form">
+                        <div class="form-group">
+                            <label>Crop</label>
+                            <select id="irrigation-crop-select">
+                                <option value="">Select Crop</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="rice">Rice</option>
+                                <option value="cotton">Cotton</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Soil Type</label>
+                            <select id="soil-type-select">
+                                <option value="">Select Soil Type</option>
+                                <option value="clay">Clay</option>
+                                <option value="loamy">Loamy</option>
+                                <option value="sandy">Sandy</option>
+                            </select>
+                        </div>
+                        <button id="irrigation-schedule-btn" class="schedule-btn">Get Irrigation Schedule</button>
+                    </div>
+                    
+                    <div class="irrigation-schedule" id="irrigation-schedule" style="display: none;">
+                        <h4>Irrigation Schedule</h4>
+                        <div class="schedule-content" id="schedule-content"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-section="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-btn" data-section="chat">
+                <i class="fas fa-comments"></i>
+                <span>AI Chat</span>
+            </button>
+            <button class="nav-btn" data-section="disease">
+                <i class="fas fa-search"></i>
+                <span>Disease</span>
+            </button>
+            <button class="nav-btn" data-section="market">
+                <i class="fas fa-chart-line"></i>
+                <span>Market</span>
+            </button>
+            <button class="nav-btn" data-section="irrigation">
+                <i class="fas fa-tint"></i>
+                <span>Water</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
