@@ -23,66 +23,73 @@ const upload = multer({
   }
 });
 
-// Advanced Multilingual AI Chat with Smart Context Awareness
-router.post('/chat', async (req, res) => {
-  try {
-    const { message, language = 'en', context, location, crop, farmSize, soilType, budget } = req.body;
-    
-    // Get relevant custom dataset context
-    let customDataContext = '';
-    try {
-      const customDataResponse = await fetch(`${req.protocol}://${req.get('host')}/api/custom-data/context`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: message, 
-          context: { location, crop, farmSize, soilType } 
-        })
-      });
-      
-      if (customDataResponse.ok) {
-        const customData = await customDataResponse.json();
-        if (customData.success && customData.relevantData.length > 0) {
-          customDataContext = `\n\nRELEVANT LOCAL DATA:\n${customData.relevantData.map(item => 
-            `- ${item.source} (${item.type}): ${JSON.stringify(item.data)}`
-          ).join('\n')}\n\nIMPORTANT: Use this local data to provide accurate, location-specific advice.`;
-        }
-      }
-    } catch (error) {
-      console.log('Custom data context not available, proceeding without it');
-    }
-    
-    // Enhanced system prompt with advanced agricultural knowledge and custom data
-    const systemPrompt = `You are KisanAI, an advanced AI agriculture expert specializing in Indian farming. 
-    
-    RESPONSE LANGUAGE: ${language === 'hi' ? 'Hindi (Devanagari script)' : 'English'}
-    
-    FARMER CONTEXT:
-    - Location: ${location || 'India'}
-    - Current Crop: ${crop || 'Mixed farming'}
-    - Farm Size: ${farmSize || 'Small scale'}
-    - Soil Type: ${soilType || 'Mixed'}
-    - Budget: ${budget || 'Limited'}
-    
-    EXPERTISE AREAS:
-    1. **Precision Agriculture**: IoT sensors, drone monitoring, satellite imagery
-    2. **Climate-Smart Farming**: Weather prediction, climate adaptation
-    3. **Sustainable Practices**: Organic farming, permaculture, biodiversity
-    4. **Market Intelligence**: Price forecasting, supply chain optimization
-    5. **Financial Planning**: Credit access, insurance, subsidies
-    6. **Technology Integration**: Apps, digital tools, automation
-    
-    RESPONSE GUIDELINES:
-    - Provide specific, actionable advice with step-by-step instructions
-    - Include cost estimates in Indian Rupees
-    - Mention government schemes and subsidies when relevant
-    - Consider seasonal timing and local weather patterns
-    - Suggest both traditional and modern solutions
-    - Include risk assessment and mitigation strategies
-    - Provide contact information for local agricultural offices when helpful
-    - ALWAYS prioritize local data and context over general knowledge
-    - If local data is available, reference it specifically in your response
-    - Be conversational, empathetic, and encouraging. Use simple language but provide comprehensive solutions.${customDataContext}`;
+        // Advanced Multilingual AI Chat with Smart Context Awareness
+        router.post('/chat', async (req, res) => {
+          try {
+            const { message, language = 'en', context, location, crop, farmSize, soilType, budget } = req.body;
+            
+            // Auto-detect language from user message if not specified
+            let detectedLanguage = language;
+            if (!language || language === 'auto') {
+              detectedLanguage = detectLanguage(message);
+            }
+            
+            // Get relevant custom dataset context
+            let customDataContext = '';
+            try {
+              const customDataResponse = await fetch(`${req.protocol}://${req.get('host')}/api/custom-data/context`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  query: message, 
+                  context: { location, crop, farmSize, soilType } 
+                })
+              });
+              
+              if (customDataResponse.ok) {
+                const customData = await customDataResponse.json();
+                if (customData.success && customData.relevantData.length > 0) {
+                  customDataContext = `\n\nRELEVANT LOCAL DATA:\n${customData.relevantData.map(item => 
+                    `- ${item.source} (${item.type}): ${JSON.stringify(item.data)}`
+                  ).join('\n')}\n\nIMPORTANT: Use this local data to provide accurate, location-specific advice.`;
+                }
+              }
+            } catch (error) {
+              console.log('Custom data context not available, proceeding without it');
+            }
+            
+            // Enhanced system prompt with advanced agricultural knowledge and custom data
+            const systemPrompt = `You are KisanAI, an advanced AI agriculture expert specializing in Indian farming. 
+            
+            RESPONSE LANGUAGE: ${getLanguageInstructions(detectedLanguage)}
+            
+            FARMER CONTEXT:
+            - Location: ${location || 'India'}
+            - Current Crop: ${crop || 'Mixed farming'}
+            - Farm Size: ${farmSize || 'Small scale'}
+            - Soil Type: ${soilType || 'Mixed'}
+            - Budget: ${budget || 'Limited'}
+            
+            EXPERTISE AREAS:
+            1. **Precision Agriculture**: IoT sensors, drone monitoring, satellite imagery
+            2. **Climate-Smart Farming**: Weather prediction, climate adaptation
+            3. **Sustainable Practices**: Organic farming, permaculture, biodiversity
+            4. **Market Intelligence**: Price forecasting, supply chain optimization
+            5. **Financial Planning**: Credit access, insurance, subsidies
+            6. **Technology Integration**: Apps, digital tools, automation
+            
+            RESPONSE GUIDELINES:
+            - Provide specific, actionable advice with step-by-step instructions
+            - Include cost estimates in Indian Rupees
+            - Mention government schemes and subsidies when relevant
+            - Consider seasonal timing and local weather patterns
+            - Suggest both traditional and modern solutions
+            - Include risk assessment and mitigation strategies
+            - Provide contact information for local agricultural offices when helpful
+            - ALWAYS prioritize local data and context over general knowledge
+            - If local data is available, reference it specifically in your response
+            - Be conversational, empathetic, and encouraging. Use simple language but provide comprehensive solutions.
+            - CRITICAL: ALWAYS respond in ${detectedLanguage === 'hi' ? 'Hindi (Devanagari script)' : 'English'} language${customDataContext}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -484,5 +491,56 @@ Focus on practical, cost-effective solutions for Indian farming conditions.`;
     res.status(500).json({ success: false, error: 'Optimization service unavailable' });
   }
 });
+
+// Language detection function
+function detectLanguage(text) {
+  const hindiPattern = /[\u0900-\u097F]/; // Devanagari script range
+  const englishPattern = /[a-zA-Z]/;
+  
+  if (hindiPattern.test(text)) {
+    return 'hi';
+  } else if (englishPattern.test(text)) {
+    return 'en';
+  }
+  
+  // Default to English if no clear pattern
+  return 'en';
+}
+
+// Get language-specific instructions
+function getLanguageInstructions(language) {
+  switch (language) {
+    case 'hi':
+      return 'Hindi (Devanagari script) - आपको हिंदी में जवाब देना है। किसानों की भाषा में सरल और स्पष्ट जवाब दें।';
+    case 'bn':
+      return 'Bengali (বাংলা) - বাংলায় উত্তর দিন। কৃষকদের ভাষায় সহজ এবং স্পষ্ট উত্তর দিন।';
+    case 'te':
+      return 'Telugu (తెలుగు) - తెలుగులో సమాధానం ఇవ్వండి. రైతుల భాషలో సరళమైన మరియు స్పష్టమైన సమాధానం ఇవ్వండి.';
+    case 'mr':
+      return 'Marathi (मराठी) - मराठीत उत्तर द्या। शेतकरी भाषेत सोपे आणि स्पष्ट उत्तर द्या।';
+    case 'ta':
+      return 'Tamil (தமிழ்) - தமிழில் பதில் கொடுங்கள். விவசாயிகளின் மொழியில் எளிமையான மற்றும் தெளிவான பதில் கொடுங்கள்.';
+    case 'gu':
+      return 'Gujarati (ગુજરાતી) - ગુજરાતીમાં જવાબ આપો। કૃષકોની ભાષામાં સરળ અને સ્પષ્ટ જવાબ આપો।';
+    case 'kn':
+      return 'Kannada (ಕನ್ನಡ) - ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರ ನೀಡಿ. ರೈತರ ಭಾಷೆಯಲ್ಲಿ ಸರಳ ಮತ್ತು ಸ್ಪಷ್ಟ ಉತ್ತರ ನೀಡಿ.';
+    case 'ml':
+      return 'Malayalam (മലയാളം) - മലയാളത്തിൽ ഉത്തരം നൽകുക. കർഷകരുടെ ഭാഷയിൽ ലളിതവും വ്യക്തവുമായ ഉത്തരം നൽകുക.';
+    case 'pa':
+      return 'Punjabi (ਪੰਜਾਬੀ) - ਪੰਜਾਬੀ ਵਿੱਚ ਜਵਾਬ ਦਿਓ। ਕਿਸਾਨਾਂ ਦੀ ਭਾਸ਼ਾ ਵਿੱਚ ਸਰਲ ਅਤੇ ਸਪਸ਼ਟ ਜਵਾਬ ਦਿਓ।';
+    case 'or':
+      return 'Odia (ଓଡ଼ିଆ) - ଓଡ଼ିଆରେ ଉତ୍ତର ଦିଅନ୍ତୁ। କୃଷକମାନଙ୍କ ଭାଷାରେ ସରଳ ଏବଂ ସ୍ପଷ୍ଟ ଉତ୍ତର ଦିଅନ୍ତୁ।';
+    case 'as':
+      return 'Assamese (অসমীয়া) - অসমীয়াত উত্তৰ দিয়ক। খেতিয়কসকলৰ ভাষাত সহজ আৰু স্পষ্ট উত্তৰ দিয়ক।';
+    case 'ur':
+      return 'Urdu (اردو) - اردو میں جواب دیں۔ کسانوں کی زبان میں آسان اور واضح جواب دیں۔';
+    case 'ne':
+      return 'Nepali (नेपाली) - नेपालीमा जवाफ दिनुहोस्। किसानहरूको भाषामा सरल र स्पष्ट जवाफ दिनुहोस्।';
+    case 'si':
+      return 'Sindhi (سنڌي) - سنڌيءَ ۾ جواب ڏيو۔ ڪسانن جي ٻوليءَ ۾ آسان ۽ واضح جواب ڏيو۔';
+    default:
+      return 'English - Respond in English. Provide clear and simple answers for farmers.';
+  }
+}
 
 module.exports = router;

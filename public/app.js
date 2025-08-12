@@ -251,6 +251,12 @@ class KisanAI {
             timestamp: new Date().toISOString()
         });
         
+        // Auto-detect language and show indicator
+        const detectedLang = this.detectLanguageFromText(message);
+        if (detectedLang === 'hi') {
+            this.showNotification('🌐 हिंदी में जवाब दिया जा रहा है...', 'info');
+        }
+        
         // Clear input
         chatInput.value = '';
         
@@ -266,7 +272,7 @@ class KisanAI {
                 },
                 body: JSON.stringify({
                     message: message,
-                    language: this.currentLanguage
+                    language: 'auto' // Auto-detect language from message
                 })
             });
             
@@ -768,7 +774,7 @@ class KisanAI {
                 },
                 body: JSON.stringify({
                     message: message,
-                    language: this.currentLanguage || 'en',
+                    language: 'auto', // Auto-detect language from message
                     conversationHistory: this.schemesConversationHistory || []
                 })
             });
@@ -947,6 +953,20 @@ class KisanAI {
         
         // Update UI language
         this.updateUILanguage();
+    }
+
+    // Auto-detect language from text
+    detectLanguageFromText(text) {
+        const hindiPattern = /[\u0900-\u097F]/; // Devanagari script range
+        const englishPattern = /[a-zA-Z]/;
+        
+        if (hindiPattern.test(text)) {
+            return 'hi';
+        } else if (englishPattern.test(text)) {
+            return 'en';
+        }
+        
+        return 'en'; // Default to English
     }
 
     updateUILanguage() {

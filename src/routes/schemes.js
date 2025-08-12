@@ -219,16 +219,22 @@ const financialOptions = [
   }
 ];
 
-// AI Chat for Scheme Discovery
-router.post('/chat', async (req, res) => {
-  try {
-    const { message, language = 'en', conversationHistory = [] } = req.body;
-    
-    // Extract farmer information from conversation
-    const farmerInfo = extractFarmerInfo(conversationHistory);
-    
-    // Generate AI response with scheme recommendations
-    const systemPrompt = `You are a government scheme expert for Indian farmers. Help farmers discover relevant schemes based on their profile.
+    // AI Chat for Scheme Discovery
+    router.post('/chat', async (req, res) => {
+      try {
+        const { message, language = 'en', conversationHistory = [] } = req.body;
+        
+        // Auto-detect language from user message if not specified
+        let detectedLanguage = language;
+        if (!language || language === 'auto') {
+          detectedLanguage = detectLanguage(message);
+        }
+        
+        // Extract farmer information from conversation
+        const farmerInfo = extractFarmerInfo(conversationHistory);
+        
+        // Generate AI response with scheme recommendations
+        const systemPrompt = `You are a government scheme expert for Indian farmers. Help farmers discover relevant schemes based on their profile.
 
 **Farmer Information Available:**
 ${JSON.stringify(farmerInfo, null, 2)}
@@ -251,8 +257,9 @@ ${financialOptions.map(option =>
 - Use simple, encouraging language
 - Be specific about benefits and requirements
 - Always mention contact information and websites
+- CRITICAL: ALWAYS respond in ${detectedLanguage === 'hi' ? 'Hindi (Devanagari script)' : 'English'} language
 
-**Language:** ${language === 'hi' ? 'Hindi (Devanagari script)' : 'English'}
+**Language:** ${getLanguageInstructions(detectedLanguage)}
 
 **Current Message:** ${message}
 
@@ -405,6 +412,57 @@ function findRelevantFinancialOptions(farmerInfo) {
     
     return true;
   }).slice(0, 3); // Return top 3 relevant options
+}
+
+// Language detection function
+function detectLanguage(text) {
+  const hindiPattern = /[\u0900-\u097F]/; // Devanagari script range
+  const englishPattern = /[a-zA-Z]/;
+  
+  if (hindiPattern.test(text)) {
+    return 'hi';
+  } else if (englishPattern.test(text)) {
+    return 'en';
+  }
+  
+  // Default to English if no clear pattern
+  return 'en';
+}
+
+// Get language-specific instructions
+function getLanguageInstructions(language) {
+  switch (language) {
+    case 'hi':
+      return 'Hindi (Devanagari script) - आपको हिंदी में जवाब देना है। किसानों की भाषा में सरल और स्पष्ट जवाब दें।';
+    case 'bn':
+      return 'Bengali (বাংলা) - বাংলায় উত্তর দিন। কৃষকদের ভাষায় সহজ এবং স্পষ্ট উত্তর দিন।';
+    case 'te':
+      return 'Telugu (తెలుగు) - తెలుగులో సమాధానం ఇవ్వండి. రైతుల భాషలో సరళమైన మరియు స్పష్టమైన సమాధానం ఇవ్వండి.';
+    case 'mr':
+      return 'Marathi (मराठी) - मराठीत उत्तर द्या। शेतकरी भाषेत सोपे आणि स्पष्ट उत्तर द्या।';
+    case 'ta':
+      return 'Tamil (தமிழ்) - தமிழில் பதில் கொடுங்கள். விவசாயிகளின் மொழியில் எளிமையான மற்றும் தெளிவான பதில் கொடுங்கள்.';
+    case 'gu':
+      return 'Gujarati (ગુજરાતી) - ગુજરાતીમાં જવાબ આપો। કૃષકોની ભાષામાં સરળ અને સ્પષ્ટ જવાબ આપો।';
+    case 'kn':
+      return 'Kannada (ಕನ್ನಡ) - ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರ ನೀಡಿ. ರೈತರ ಭಾಷೆಯಲ್ಲಿ ಸರಳ ಮತ್ತು ಸ್ಪಷ್ಟ ಉತ್ತರ ನೀಡಿ.';
+    case 'ml':
+      return 'Malayalam (മലയാളം) - മലയാളത്തിൽ ഉത്തരം നൽകുക. കർഷകരുടെ ഭാഷയിൽ ലളിതവും വ്യക്തവുമായ ഉത്തരം നൽകുക.';
+    case 'pa':
+      return 'Punjabi (ਪੰਜਾਬੀ) - ਪੰਜਾਬੀ ਵਿੱਚ ਜਵਾਬ ਦਿਓ। ਕਿਸਾਨਾਂ ਦੀ ਭਾਸ਼ਾ ਵਿੱਚ ਸਰਲ ਅਤੇ ਸਪਸ਼ਟ ਜਵਾਬ ਦਿਓ।';
+    case 'or':
+      return 'Odia (ଓଡ଼ିଆ) - ଓଡ଼ିଆରେ ଉତ୍ତର ଦିଅନ୍ତୁ। କୃଷକମାନଙ୍କ ଭାଷାରେ ସରଳ ଏବଂ ସ୍ପଷ୍ଟ ଉତ୍ତର ଦିଅନ୍ତୁ।';
+    case 'as':
+      return 'Assamese (অসমীয়া) - অসমীয়াত উত্তৰ দিয়ক। খেতিয়কসকলৰ ভাষাত সহজ আৰু স্পষ্ট উত্তৰ দিয়ক।';
+    case 'ur':
+      return 'Urdu (اردو) - اردو میں جواب دیں۔ کسانوں کی زبان میں آسان اور واضح جواب دیں۔';
+    case 'ne':
+      return 'Nepali (नेपाली) - नेपालीमा जवाफ दिनुहोस्। किसानहरूको भाषामा सरल र स्पष्ट जवाफ दिनुहोस्।';
+    case 'si':
+      return 'Sindhi (سنڌي) - سنڌيءَ ۾ جواب ڏيو۔ ڪسانن جي ٻوليءَ ۾ آسان ۽ واضح جواب ڏيو۔';
+    default:
+      return 'English - Respond in English. Provide clear and simple answers for farmers.';
+  }
 }
 
 module.exports = router;
