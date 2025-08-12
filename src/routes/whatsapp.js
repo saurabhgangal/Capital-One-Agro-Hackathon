@@ -100,6 +100,7 @@ router.get('/qr', async (req, res) => {
   if (isConnected) {
     res.json({ success: true, message: 'WhatsApp is already connected' });
   } else if (qrCode) {
+    console.log('📱 Returning existing QR code');
     res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
   } else if (isInitializing) {
     res.json({ success: false, message: 'WhatsApp is initializing, please wait...' });
@@ -108,12 +109,22 @@ router.get('/qr', async (req, res) => {
     console.log('📱 Force initializing WhatsApp...');
     try {
       await initializeWhatsApp();
-      // Wait 5 seconds for QR code
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Wait for QR code with timeout
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (!qrCode && attempts < maxAttempts) {
+        console.log(`📱 Waiting for QR code... attempt ${attempts + 1}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts++;
+      }
       
       if (qrCode) {
+        console.log('📱 QR code generated successfully, returning to user');
         res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
       } else {
+        console.log('📱 QR code not generated after waiting');
         res.json({ success: false, message: 'QR code not generated. Try again.' });
       }
     } catch (error) {
@@ -167,6 +178,55 @@ router.get('/test', async (req, res) => {
       success: false, 
       error: error.message 
     });
+  }
+});
+
+// Force QR code generation for testing
+router.get('/force-qr', async (req, res) => {
+  try {
+    console.log('📱 Force QR code generation requested');
+    
+    if (isConnected) {
+      return res.json({ success: false, message: 'WhatsApp already connected' });
+    }
+    
+    // Reset and reinitialize
+    if (whatsappClient) {
+      try {
+        await whatsappClient.destroy();
+      } catch (e) {
+        console.log('Destroyed existing client');
+      }
+      whatsappClient = null;
+    }
+    
+    isConnected = false;
+    isInitializing = false;
+    qrCode = null;
+    
+    // Start fresh initialization
+    await initializeWhatsApp();
+    
+    // Wait for QR code
+    let attempts = 0;
+    const maxAttempts = 15;
+    
+    while (!qrCode && attempts < maxAttempts) {
+      console.log(`📱 Waiting for QR code... attempt ${attempts + 1}`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
+    }
+    
+    if (qrCode) {
+      console.log('📱 Force QR code generated successfully');
+      res.json({ success: true, qrCode: qrCode, status: 'waiting_for_scan' });
+    } else {
+      console.log('📱 Force QR code failed');
+      res.json({ success: false, message: 'Failed to generate QR code' });
+    }
+  } catch (error) {
+    console.error('Force QR code error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

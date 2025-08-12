@@ -1570,6 +1570,28 @@ async function checkWhatsAppStatus() {
     }
 }
 
+// Force WhatsApp QR code generation
+async function forceWhatsAppQR() {
+    try {
+        console.log('🔄 Force generating WhatsApp QR code...');
+        const response = await fetch('/api/whatsapp/force-qr');
+        const data = await response.json();
+        
+        console.log('Force QR response:', data);
+        
+        if (data.success && data.qrCode) {
+            // Show QR code immediately
+            showQRCodeModal(data.qrCode);
+        } else {
+            console.log('Force QR failed:', data);
+            alert('Force QR failed: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Force QR error:', error);
+        alert('Failed to force QR code. Check console for details.');
+    }
+}
+
 // Show QR code modal
 function showQRCodeModal(qrCodeData) {
     const modal = document.createElement('div');
