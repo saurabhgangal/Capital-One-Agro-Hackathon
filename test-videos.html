@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Test Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .video-test {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .background-video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            opacity: 0.8;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+        .success { background: #2d5a2d; }
+        .error { background: #5a2d2d; }
+        .info { background: #2d2d5a; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Video Loading Test Page</h1>
+    
+    <div class="video-test">
+        <h3>Test 1: W3Schools Sample Video</h3>
+        <video class="background-video" autoplay muted loop playsinline preload="metadata">
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        </video>
+        <div class="status info">Status: Loading...</div>
+    </div>
+
+    <div class="video-test">
+        <h3>Test 2: Google Sample Video</h3>
+        <video class="background-video" autoplay muted loop playsinline preload="metadata">
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        </video>
+        <div class="status info">Status: Loading...</div>
+    </div>
+
+    <div class="video-test">
+        <h3>Test 3: GIF Fallback</h3>
+        <img class="background-video" src="https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif" alt="Farming background">
+        <div class="status success">Status: GIF loaded (should work)</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videos = document.querySelectorAll('video');
+            
+            videos.forEach((video, index) => {
+                const statusDiv = video.parentElement.querySelector('.status');
+                
+                video.addEventListener('loadstart', () => {
+                    statusDiv.textContent = `Status: Started loading video ${index + 1}`;
+                    statusDiv.className = 'status info';
+                });
+                
+                video.addEventListener('loadeddata', () => {
+                    statusDiv.textContent = `Status: Video ${index + 1} loaded successfully!`;
+                    statusDiv.className = 'status success';
+                });
+                
+                video.addEventListener('canplay', () => {
+                    statusDiv.textContent = `Status: Video ${index + 1} can play!`;
+                    statusDiv.className = 'status success';
+                });
+                
+                video.addEventListener('error', (e) => {
+                    statusDiv.textContent = `Status: Video ${index + 1} failed to load: ${e.message || 'Unknown error'}`;
+                    statusDiv.className = 'status error';
+                    console.error('Video error:', e);
+                });
+                
+                video.addEventListener('play', () => {
+                    statusDiv.textContent = `Status: Video ${index + 1} is playing!`;
+                    statusDiv.className = 'status success';
+                });
+                
+                // Try to play the video
+                video.play().then(() => {
+                    statusDiv.textContent = `Status: Video ${index + 1} started playing automatically!`;
+                    statusDiv.className = 'status success';
+                }).catch(e => {
+                    statusDiv.textContent = `Status: Video ${index + 1} autoplay blocked: ${e.message}`;
+                    statusDiv.className = 'status info';
+                    console.log('Autoplay blocked:', e.message);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

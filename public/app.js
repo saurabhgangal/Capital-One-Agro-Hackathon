@@ -1728,6 +1728,18 @@ class WhatsAppManager {
             return;
         }
         
+        // Show animated background fallback
+        const animatedBg = video.parentElement.querySelector('.animated-background');
+        const floatingParticles = video.parentElement.querySelector('.floating-particles');
+        
+        if (animatedBg && floatingParticles) {
+            console.log('Showing animated background fallback');
+            video.style.display = 'none';
+            animatedBg.style.display = 'block';
+            floatingParticles.style.display = 'block';
+            return;
+        }
+        
         // Fallback to static images
         const fallbackImages = {
             'dashboard-section': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
