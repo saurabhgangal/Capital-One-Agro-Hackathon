@@ -1809,7 +1809,7 @@ body {
 
 .scheme-card p {
     margin: 8px 0;
-    color: #555;
+    color: #333 !important;
     font-size: 14px;
     line-height: 1.6;
 }
@@ -1826,12 +1826,19 @@ body {
     border-radius: 8px;
     margin: 12px 0;
     border-left: 4px solid var(--primary-color);
+    color: #333 !important;
+}
+
+.scheme-card .benefits strong,
+.scheme-card .contact strong {
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .scheme-link {
     display: inline-block;
     background: linear-gradient(135deg, var(--primary-color), #4ade80);
-    color: white;
+    color: white !important;
     text-decoration: none;
     padding: 10px 20px;
     border-radius: 25px;
@@ -1844,7 +1851,7 @@ body {
 .scheme-link:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
-    color: white;
+    color: white !important;
 }
 
 /* Financial Options Cards */
@@ -1887,7 +1894,7 @@ body {
 
 .financial-card p {
     margin: 8px 0;
-    color: #555;
+    color: #333 !important;
     font-size: 14px;
     line-height: 1.6;
 }
@@ -1904,6 +1911,13 @@ body {
     border-radius: 8px;
     margin: 12px 0;
     border-left: 4px solid #3b82f6;
+    color: #333 !important;
+}
+
+.financial-card .features strong,
+.financial-card .contact strong {
+    color: #3b82f6;
+    font-weight: 600;
 }
 
 /* Thinking Animation */
@@ -1948,6 +1962,7 @@ body {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     backdrop-filter: blur(10px);
+    border: 1px solid #e9ecef;
 }
 
 #schemes-display h4 {
@@ -1958,6 +1973,10 @@ body {
     text-align: center;
     padding-bottom: 8px;
     border-bottom: 2px solid var(--primary-color);
+}
+
+#schemes-display p {
+    color: #333 !important;
 }
 
 .schemes-list-container,
