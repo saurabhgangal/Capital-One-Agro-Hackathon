@@ -1060,6 +1060,9 @@ class KisanAI {
             // Update voice recognition language
             this.updateVoiceRecognitionLanguage();
             
+            // Reinitialize voice recognition with new language
+            this.reinitializeVoiceRecognition();
+            
             // Close dropdown
             this.closeLanguageDropdown();
             
@@ -1103,21 +1106,43 @@ class KisanAI {
     
     updateVoiceRecognitionLanguage() {
         if (this.recognition) {
+            // Map all supported languages to their speech recognition codes
             const languageMap = {
-                'hi': 'hi-IN',
-                'en': 'en-US',
-                'pa': 'pa-IN',
-                'bn': 'bn-IN',
-                'te': 'te-IN',
-                'ta': 'ta-IN',
-                'mr': 'mr-IN',
-                'gu': 'gu-IN',
-                'kn': 'kn-IN',
-                'ml': 'ml-IN'
+                'hi': 'hi-IN',      // Hindi
+                'en': 'en-US',      // English
+                'pa': 'pa-IN',      // Punjabi
+                'bn': 'bn-IN',      // Bengali
+                'te': 'te-IN',      // Telugu
+                'ta': 'ta-IN',      // Tamil
+                'mr': 'mr-IN',      // Marathi
+                'gu': 'gu-IN',      // Gujarati
+                'kn': 'kn-IN',      // Kannada
+                'ml': 'ml-IN'       // Malayalam
             };
-            const newLang = languageMap[this.currentLanguage] || 'hi-IN';
+            
+            const newLang = languageMap[this.currentLanguage] || 'en-US';
             this.recognition.lang = newLang;
-            console.log('Voice recognition language updated to:', newLang);
+            console.log('🎤 Voice recognition language updated to:', newLang, 'for app language:', this.currentLanguage);
+            
+            // Also update the voice status to show current language
+            const statusElement = document.querySelector('.voice-status');
+            if (statusElement) {
+                const statusText = this.currentLanguage === 'hi' ? 
+                    `सुनने के लिए तैयार (${newLang})` : 
+                    `Ready to listen (${newLang})`;
+                statusElement.textContent = statusText;
+            }
+            
+            // Update all voice-related UI elements to show current language
+            this.updateVoiceLanguageUI(newLang);
+            
+            // Force re-initialization if needed
+            if (this.recognition.state === 'recording') {
+                this.recognition.stop();
+                console.log('🔄 Stopped recording to apply new language settings');
+            }
+        } else {
+            console.warn('⚠️ Voice recognition not initialized yet');
         }
     }
     
@@ -1500,28 +1525,29 @@ class KisanAI {
     // Voice Recognition Methods
     initVoiceRecognition() {
         try {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                this.recognition = new SpeechRecognition();
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
                 
                 // Set language based on current app language
                 this.recognition.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
-                
-                this.recognition.continuous = false;
-                this.recognition.interimResults = false;
+                console.log('🎤 Initial voice recognition language set to:', this.recognition.lang, 'for app language:', this.currentLanguage);
+            
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
                 this.recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
-                
-                this.recognition.onstart = () => {
+            
+            this.recognition.onstart = () => {
                     console.log('Voice recognition started');
                     const status = this.currentLanguage === 'hi' ? 'सुन रहा हूं... बोलिए' : 'Listening... Speak now';
                     this.updateVoiceStatus(status, 'listening');
-                    const recordBtn = document.getElementById('start-recording');
-                    const stopBtn = document.getElementById('stop-recording');
-                    if (recordBtn) recordBtn.style.display = 'none';
-                    if (stopBtn) stopBtn.style.display = 'flex';
-                };
-                
-                this.recognition.onresult = (event) => {
+                const recordBtn = document.getElementById('start-recording');
+                const stopBtn = document.getElementById('stop-recording');
+                if (recordBtn) recordBtn.style.display = 'none';
+                if (stopBtn) stopBtn.style.display = 'flex';
+            };
+            
+            this.recognition.onresult = (event) => {
                     console.log('Voice recognition result:', event.results);
                     if (event.results && event.results.length > 0) {
                         // Get the best transcript with highest confidence
@@ -1563,26 +1589,26 @@ class KisanAI {
                             this.updateVoiceStatus(status, 'success');
                         }
                     }
-                };
-                
-                this.recognition.onerror = (event) => {
-                    console.error('Speech recognition error:', event.error);
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
                     const errorMsg = this.currentLanguage === 'hi' ? `त्रुटि: ${event.error}` : `Error: ${event.error}`;
                     this.updateVoiceStatus(errorMsg, 'error');
-                    this.resetVoiceButtons();
-                };
-                
-                this.recognition.onend = () => {
+                this.resetVoiceButtons();
+            };
+            
+            this.recognition.onend = () => {
                     console.log('Voice recognition ended');
                     const status = this.currentLanguage === 'hi' ? 'सुनने के लिए तैयार...' : 'Ready to listen...';
                     this.updateVoiceStatus(status, '');
-                    this.resetVoiceButtons();
-                };
-                
-                // Add voice interface event listeners
-                this.setupVoiceEventListeners();
+                this.resetVoiceButtons();
+            };
+            
+            // Add voice interface event listeners
+            this.setupVoiceEventListeners();
                 console.log('Voice recognition initialized successfully');
-            } else {
+        } else {
                 console.warn('Speech recognition not supported in this browser');
                 this.showNotification('Voice recognition not supported in this browser', 'warning');
             }
@@ -2156,7 +2182,7 @@ class KisanAI {
         }
     }
     
-    debugAppStatus() {
+        debugAppStatus() {
         console.log('🔍 Debugging app status...');
         
         // Check critical elements
@@ -2183,10 +2209,81 @@ class KisanAI {
         console.log('- Media Devices:', 'mediaDevices' in navigator);
         console.log('- Chart.js:', typeof Chart);
         
-        // Check current language
+        // Check current language and voice recognition
         console.log('🌍 Current language:', this.currentLanguage);
+        if (this.recognition) {
+            console.log('🎤 Voice recognition status:');
+            console.log('  - Language:', this.recognition.lang);
+            console.log('  - State:', this.recognition.state);
+            console.log('  - Continuous:', this.recognition.continuous);
+            console.log('  - Interim Results:', this.recognition.interimResults);
+        } else {
+            console.log('❌ Voice recognition not initialized');
+        }
         
         console.log('🔍 App status debug complete');
+    }
+    
+    // Update voice-related UI elements to show current language
+    updateVoiceLanguageUI(languageCode) {
+        try {
+            // Update voice button tooltips
+            const voiceButtons = document.querySelectorAll('[data-voice-tooltip]');
+            voiceButtons.forEach(button => {
+                const tooltip = this.currentLanguage === 'hi' ? 
+                    `हिंदी में बोलें (${languageCode})` : 
+                    `Speak in ${this.currentLanguage === 'en' ? 'English' : 'selected language'} (${languageCode})`;
+                button.setAttribute('title', tooltip);
+            });
+            
+            // Update voice status messages
+            const statusMessages = {
+                'hi-IN': {
+                    ready: 'सुनने के लिए तैयार',
+                    listening: 'सुन रहा हूं... बोलिए',
+                    success: 'भाषण पहचाना गया!',
+                    error: 'त्रुटि हुई'
+                },
+                'en-US': {
+                    ready: 'Ready to listen',
+                    listening: 'Listening... Speak now',
+                    success: 'Speech recognized successfully!',
+                    error: 'Error occurred'
+                }
+            };
+            
+            const currentMessages = statusMessages[languageCode] || statusMessages['en-US'];
+            console.log('🎤 Updated voice UI with language:', languageCode, 'Messages:', currentMessages);
+            
+        } catch (error) {
+            console.error('❌ Error updating voice language UI:', error);
+        }
+    }
+    
+    // Reinitialize voice recognition with new language
+    reinitializeVoiceRecognition() {
+        try {
+            console.log('🔄 Reinitializing voice recognition for language:', this.currentLanguage);
+            
+            // Stop any ongoing recognition
+            if (this.recognition && this.recognition.state === 'recording') {
+                this.recognition.stop();
+            }
+            
+            // Destroy old recognition instance
+            if (this.recognition) {
+                this.recognition = null;
+            }
+            
+            // Wait a bit then reinitialize
+            setTimeout(() => {
+                this.initVoiceRecognition();
+                console.log('✅ Voice recognition reinitialized with language:', this.currentLanguage);
+            }, 500);
+            
+        } catch (error) {
+            console.error('❌ Error reinitializing voice recognition:', error);
+        }
     }
     
     // Get chart data from ChatGPT API or fallback
