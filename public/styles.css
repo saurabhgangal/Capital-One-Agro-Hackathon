@@ -1968,6 +1968,9 @@ body {
     backdrop-filter: blur(10px);
     border: 2px solid #22c55e;
     box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+    max-height: 60vh;
+    overflow-y: auto;
+    position: relative;
 }
 
 #schemes-display h4 {
@@ -1979,6 +1982,13 @@ body {
     padding-bottom: 8px;
     border-bottom: 2px solid #22c55e;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 10;
+    padding: 16px 20px;
+    margin: -20px -20px 16px -20px;
+    border-radius: 16px 16px 0 0;
 }
 
 #schemes-display p {
@@ -1990,6 +2000,36 @@ body {
     display: grid;
     gap: 16px;
     margin-bottom: 24px;
+    max-height: 45vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Custom scrollbar for schemes display */
+#schemes-display::-webkit-scrollbar,
+.schemes-list-container::-webkit-scrollbar,
+.financial-options-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#schemes-display::-webkit-scrollbar-track,
+.schemes-list-container::-webkit-scrollbar-track,
+.financial-options-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#schemes-display::-webkit-scrollbar-thumb,
+.schemes-list-container::-webkit-scrollbar-thumb,
+.financial-options-container::-webkit-scrollbar-thumb {
+    background: #22c55e;
+    border-radius: 4px;
+}
+
+#schemes-display::-webkit-scrollbar-thumb:hover,
+.schemes-list-container::-webkit-scrollbar-thumb:hover,
+.financial-options-container::-webkit-scrollbar-thumb:hover {
+    background: #16a34a;
 }
 
 /* Responsive Design */
@@ -2022,7 +2062,7 @@ body {
     border: 1px solid #e9ecef;
     border-radius: 16px;
     padding: 20px;
-    margin: 8px 0;
+    margin: 8px 0 16px 0;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     color: #333 !important;
 }
@@ -2082,12 +2122,14 @@ body {
 .chat-input-container {
     position: sticky;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     padding: var(--spacing-4);
     border-radius: var(--radius-2xl);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: var(--shadow-xl);
+    z-index: 100;
+    margin-top: 16px;
 }
 
 .chat-input-wrapper {
