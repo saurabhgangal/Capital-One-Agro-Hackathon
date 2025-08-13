@@ -2203,36 +2203,48 @@ body {
     font-weight: 600;
 }
 
-/* Modern Bottom Navigation */
+/* Modern Bottom Navigation - Mobile First */
 .bottom-nav {
-    background: rgba(255, 255, 255, 0.1);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 41, 59, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-2) var(--spacing-3);
     display: flex;
     justify-content: space-around;
-    position: sticky;
-    bottom: 0;
-    box-shadow: var(--shadow-2xl);
-    z-index: 50;
+    align-items: center;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    /* Safe area for iPhone X and newer */
+    padding-bottom: calc(var(--spacing-2) + env(safe-area-inset-bottom));
+    /* Ensure navigation is always accessible */
+    min-height: 70px;
+    /* Touch-friendly sizing */
+    touch-action: manipulation;
 }
 
 .nav-btn {
     background: none;
     border: none;
-    padding: var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-1);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-1);
-    color: var(--dark-gray);
-    border-radius: var(--radius-xl);
-    min-width: 70px;
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-lg);
+    min-width: 60px;
+    min-height: 60px;
     position: relative;
     overflow: hidden;
+    flex: 1;
+    justify-content: center;
 }
 
 .nav-btn::before {
@@ -2245,16 +2257,16 @@ body {
     background: var(--gradient-primary);
     opacity: 0;
     transition: opacity 0.3s ease;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
 }
 
 .nav-btn:hover {
-    transform: translateY(-2px) scale(1.05);
+    transform: translateY(-2px);
     color: var(--white);
 }
 
 .nav-btn:hover::before {
-    opacity: 0.1;
+    opacity: 0.15;
 }
 
 .nav-btn.active {
@@ -2263,23 +2275,24 @@ body {
 }
 
 .nav-btn.active::before {
-    opacity: 1;
+    opacity: 0.25;
 }
 
 .nav-btn i {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     position: relative;
     z-index: 1;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
 .nav-btn span {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
     position: relative;
     z-index: 1;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
 }
 
 /* Enhanced Market Analysis Styles */
@@ -2668,54 +2681,67 @@ body {
         display: none;
     }
 
-    /* Mobile Navigation */
+    /* Mobile Navigation - Enhanced */
     .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        padding: var(--spacing-3);
-        z-index: 1000;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        padding: var(--spacing-2) var(--spacing-2);
+        /* Ensure proper spacing on small screens */
+        gap: var(--spacing-1);
     }
 
     .nav-btn {
-        padding: var(--spacing-3);
-        font-size: 0.8rem;
-        min-height: 60px;
-        border-radius: var(--radius-lg);
-        transition: all 0.2s ease;
-        position: relative;
-        overflow: hidden;
+        min-width: 50px;
+        min-height: 55px;
+        padding: var(--spacing-2) var(--spacing-1);
     }
 
-    .nav-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .nav-btn:active::before {
-        left: 100%;
+    .nav-btn i {
+        font-size: 1.1rem;
     }
 
     .nav-btn span {
-        font-size: 0.7rem;
-        margin-top: var(--spacing-1);
-        font-weight: 500;
+        font-size: 0.6rem;
+        line-height: 1.1;
+    }
+    
+    /* Extra small screens (iPhone SE, etc.) */
+    @media (max-width: 375px) {
+        .bottom-nav {
+            padding: var(--spacing-1) var(--spacing-1);
+        }
+        
+        .nav-btn {
+            min-width: 45px;
+            min-height: 50px;
+            padding: var(--spacing-1);
+        }
+        
+        .nav-btn i {
+            font-size: 1rem;
+        }
+        
+        .nav-btn span {
+            font-size: 0.55rem;
+        }
+    }
+    
+    /* Landscape mobile optimization */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .bottom-nav {
+            padding: var(--spacing-1) var(--spacing-2);
+        }
+        
+        .nav-btn {
+            min-height: 45px;
+        }
+        
+        .nav-btn span {
+            display: none; /* Hide text in landscape to save space */
+        }
     }
 
     /* Mobile content spacing */
     .main-content {
-        padding-bottom: 100px; /* Space for bottom nav */
+        padding-bottom: 120px; /* Space for bottom nav + safe area */
         padding-left: var(--spacing-3);
         padding-right: var(--spacing-3);
     }
