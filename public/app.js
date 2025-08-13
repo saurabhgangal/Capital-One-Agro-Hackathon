@@ -1870,12 +1870,12 @@ class KisanAI {
                     <div class="message ai-message">
                         <div class="message-avatar">🏛️</div>
                         <div class="message-content">
-                            <p>नमस्ते! मैं आपको सरकारी योजनाओं और वित्तीय सहायता के बारे में मदद करूंगा। कृपया मुझे बताएं:</p>
+                            <p>Hello! I'm here to help you with government schemes and financial assistance. Please tell me:</p>
                             <ul>
-                                <li>आपकी उम्र क्या है?</li>
-                                <li>आप कहाँ रहते हैं?</li>
-                                <li>आपके पास कितनी जमीन है?</li>
-                                <li>क्या आपको कर्ज की जरूरत है?</li>
+                                <li>What is your age?</li>
+                                <li>Where do you live?</li>
+                                <li>How much land do you have?</li>
+                                <li>Do you need credit/loans?</li>
                             </ul>
                         </div>
                     </div>
@@ -1910,46 +1910,164 @@ class KisanAI {
         }
     }
     
-    processSchemesMessage(message) {
-        console.log('🏛️ Processing schemes message:', message);
+    // Intelligent schemes chat with API integration
+    async sendSchemesMessage() {
+        const input = document.getElementById('schemes-chat-input');
+        const message = input.value.trim();
         
-        // Analyze the message and provide relevant scheme information
-        const lowerMessage = message.toLowerCase();
+        if (!message) return;
         
-        let response = '';
+        // Add user message to chat
+        this.addSchemesMessage('user', message);
+        input.value = '';
         
-        if (lowerMessage.includes('umr') || lowerMessage.includes('age') || lowerMessage.includes('उम्र')) {
-            response = 'आपकी उम्र के आधार पर, यहाँ कुछ योजनाएं हैं:\n\n' +
-                      '• **PM-KISAN**: 18+ वर्ष के किसानों के लिए\n' +
-                      '• **PM-Fasal Bima Yojana**: सभी उम्र के किसानों के लिए\n' +
-                      '• **Kisan Credit Card**: 18-75 वर्ष के किसानों के लिए';
-        } else if (lowerMessage.includes('jameen') || lowerMessage.includes('land') || lowerMessage.includes('जमीन')) {
-            response = 'जमीन के आधार पर योजनाएं:\n\n' +
-                      '• **PM-KISAN**: 2 हेक्टेयर तक की जमीन पर ₹6000/वर्ष\n' +
-                      '• **PM-Fasal Bima**: सभी जमीन के लिए बीमा\n' +
-                      '• **Soil Health Card**: मिट्टी की जांच के लिए';
-        } else if (lowerMessage.includes('kharz') || lowerMessage.includes('loan') || lowerMessage.includes('कर्ज')) {
-            response = 'कर्ज के लिए योजनाएं:\n\n' +
-                      '• **Kisan Credit Card**: 3 लाख तक का कर्ज\n' +
-                      '• **PM-KISAN**: नियमित आय सहायता\n' +
-                      '• **Interest Subvention**: कर्ज पर ब्याज में छूट';
-        } else if (lowerMessage.includes('kahan') || lowerMessage.includes('where') || lowerMessage.includes('कहाँ')) {
-            response = 'आपके क्षेत्र के लिए विशेष योजनाएं:\n\n' +
-                      '• **PM-KISAN**: पूरे भारत में\n' +
-                      '• **State Specific Schemes**: आपके राज्य के अनुसार\n' +
-                      '• **Regional Subsidies**: क्षेत्रीय आधार पर';
-        } else {
-            response = 'आपकी जानकारी के आधार पर, यहाँ कुछ महत्वपूर्ण योजनाएं हैं:\n\n' +
-                      '• **PM-KISAN**: ₹6000/वर्ष की सहायता\n' +
-                      '• **PM-Fasal Bima Yojana**: फसल बीमा\n' +
-                      '• **Kisan Credit Card**: आसान कर्ज\n' +
-                      '• **Soil Health Card**: मिट्टी की जांच\n\n' +
-                      'कृपया अपनी विशिष्ट जरूरत बताएं ताकि मैं आपको सटीक जानकारी दे सकूं।';
+        // Add thinking message
+        const thinkingId = this.addThinkingMessage();
+        
+        try {
+            const response = await fetch('/api/schemes/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    language: this.currentLanguage === 'hi' ? 'hi' : 'en',
+                    conversationHistory: this.schemesConversationHistory || []
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Remove thinking message
+                this.removeThinkingMessage(thinkingId);
+                
+                // Add AI response to chat
+                this.addSchemesMessage('ai', data.response);
+                
+                // Update conversation history
+                if (!this.schemesConversationHistory) this.schemesConversationHistory = [];
+                this.schemesConversationHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'ai', content: data.response }
+                );
+                
+                // Display relevant schemes and financial options
+                if (data.relevantSchemes && data.relevantSchemes.length > 0) {
+                    this.displaySchemes(data.relevantSchemes);
+                }
+                
+                if (data.relevantFinancialOptions && data.relevantFinancialOptions.length > 0) {
+                    this.displayFinancialOptions(data.relevantFinancialOptions);
+                }
+                
+                // Show schemes display
+                const schemesDisplay = document.getElementById('schemes-display');
+                if (schemesDisplay) {
+                    schemesDisplay.style.display = 'block';
+                }
+            } else {
+                throw new Error(data.error);
+            }
+            
+        } catch (error) {
+            console.error('Schemes Chat Error:', error);
+            this.removeThinkingMessage(thinkingId);
+            this.addSchemesMessage('ai', 'Sorry, I encountered an error. Please try again.');
         }
+    }
+    
+    addThinkingMessage() {
+        const messagesContainer = document.getElementById('schemes-chat-messages');
+        if (!messagesContainer) return null;
         
-        setTimeout(() => {
-            this.addSchemesMessage('ai', response);
-        }, 1000);
+        const thinkingDiv = document.createElement('div');
+        const thinkingId = 'thinking-' + Date.now();
+        thinkingDiv.id = thinkingId;
+        thinkingDiv.className = 'message ai-message thinking-message';
+        
+        thinkingDiv.innerHTML = `
+            <div class="message-avatar">🏛️</div>
+            <div class="message-content">
+                <div class="thinking-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <p>Thinking...</p>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(thinkingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return thinkingId;
+    }
+    
+    removeThinkingMessage(thinkingId) {
+        if (thinkingId) {
+            const thinkingDiv = document.getElementById(thinkingId);
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+    }
+    
+    displaySchemes(schemes) {
+        const schemesList = document.getElementById('schemes-list');
+        if (!schemesList) return;
+        
+        schemesList.innerHTML = '';
+        
+        schemes.forEach(scheme => {
+            const schemeCard = document.createElement('div');
+            schemeCard.className = 'scheme-card';
+            schemeCard.innerHTML = `
+                <h5>${scheme.name}</h5>
+                <p><strong>Description:</strong> ${scheme.description}</p>
+                <p><strong>Eligibility:</strong> ${scheme.eligibility}</p>
+                <p><strong>Benefits:</strong> ${scheme.benefits}</p>
+                <div class="benefits">
+                    <strong>Application:</strong> ${scheme.applicationProcess}
+                </div>
+                <div class="contact">
+                    <strong>Contact:</strong> ${scheme.contact}
+                </div>
+                <a href="${scheme.website}" target="_blank" class="scheme-link">Visit Official Website</a>
+            `;
+            schemesList.appendChild(schemeCard);
+        });
+    }
+    
+    displayFinancialOptions(options) {
+        const financialOptions = document.getElementById('financial-options');
+        if (!financialOptions) return;
+        
+        financialOptions.innerHTML = '';
+        
+        options.forEach(option => {
+            const optionCard = document.createElement('div');
+            optionCard.className = 'financial-card';
+            optionCard.innerHTML = `
+                <h5>${option.name}</h5>
+                <p><strong>Type:</strong> ${option.type}</p>
+                <p><strong>Amount:</strong> ${option.amount}</p>
+                <p><strong>Interest Rate:</strong> ${option.interestRate}</p>
+                <div class="features">
+                    <strong>Features:</strong> ${option.features}
+                </div>
+                <div class="contact">
+                    <strong>Contact:</strong> ${option.contact}
+                </div>
+            `;
+            financialOptions.appendChild(optionCard);
+        });
+    }
+    
+    // Fallback method for voice input
+    processSchemesMessage(message) {
+        // This is now a fallback - the main functionality is in sendSchemesMessage
+        this.sendSchemesMessage();
     }
     
     // Market Analysis Methods
