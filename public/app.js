@@ -1808,16 +1808,54 @@ class KisanAI {
             messageDiv.className = `message ${sender}-message`;
             
             const avatar = sender === 'user' ? '👤' : '🏛️';
-            const messageContent = sender === 'user' ? 
-                `<div class="message-avatar">${avatar}</div>
-                 <div class="message-content"><p>${message}</p></div>` :
-                `<div class="message-avatar">${avatar}</div>
-                 <div class="message-content"><p>${message}</p></div>`;
+            
+            let messageContent = '';
+            
+            if (sender === 'user') {
+                // User message - simple format
+                messageContent = `
+                    <div class="message-avatar">${avatar}</div>
+                    <div class="message-content"><p>${message}</p></div>
+                `;
+            } else {
+                // AI message - parse markdown and create beautiful cards
+                const parsedMessage = this.parseSchemesMessage(message);
+                messageContent = `
+                    <div class="message-avatar">${avatar}</div>
+                    <div class="message-content">${parsedMessage}</div>
+                `;
+            }
             
             messageDiv.innerHTML = messageContent;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+    }
+    
+    // Parse schemes message and convert to beautiful cards
+    parseSchemesMessage(message) {
+        // Replace markdown with HTML
+        let html = message
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n•/g, '</p><p>•')
+            .replace(/\n- /g, '</p><p>• ')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph tags
+        if (!html.startsWith('<p>')) {
+            html = `<p>${html}</p>`;
+        }
+        
+        // Convert bullet points to beautiful cards
+        html = html.replace(/<p>• (.*?)<\/p>/g, (match, content) => {
+            return `<div class="scheme-card">
+                        <div class="scheme-icon">🏛️</div>
+                        <div class="scheme-content">${content}</div>
+                    </div>`;
+        });
+        
+        return html;
     }
     
     // Initialize schemes chat functionality

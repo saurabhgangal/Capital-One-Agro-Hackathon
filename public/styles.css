@@ -1767,10 +1767,64 @@ body {
         transform: scale(0.8);
         opacity: 0.5;
     }
-    40% {
-        transform: scale(1);
-        opacity: 1;
-    }
+}
+
+/* Beautiful Scheme Chat Cards */
+.scheme-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.scheme-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.scheme-icon {
+    font-size: 24px;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.scheme-content {
+    flex: 1;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.scheme-content strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Enhanced message styling for schemes chat */
+.schemes-chat-section .message.ai-message .message-content {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 8px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.schemes-chat-section .message.user-message .message-content {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #4ade80 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin: 8px 0;
+    box-shadow: 0 2px 12px rgba(74, 222, 128, 0.3);
 }
 
 .thinking-message {
