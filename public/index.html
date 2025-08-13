@@ -24,6 +24,9 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js for Beautiful Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -336,26 +339,161 @@
                 </div>
                 
                 <div class="market-content">
+                    <!-- Market Overview Cards -->
+                    <div class="market-overview">
+                        <div class="market-card">
+                            <div class="card-icon">📈</div>
+                            <div class="card-content">
+                                <h4>Market Trend</h4>
+                                <p class="trend-up">+5.2% This Week</p>
+                            </div>
+                        </div>
+                        <div class="market-card">
+                            <div class="card-icon">💰</div>
+                            <div class="card-content">
+                                <h4>Best Crop</h4>
+                                <p>Wheat (₹2,150/qtl)</p>
+                            </div>
+                        </div>
+                        <div class="market-card">
+                            <div class="card-icon">🌾</div>
+                            <div class="card-content">
+                                <h4>Total Crops</h4>
+                                <p>12 Active Markets</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Analysis Form -->
                     <div class="market-form">
-                        <div class="form-group">
-                            <label>Crop</label>
-                            <select id="crop-select">
-                                <option value="">Select Crop</option>
-                                <option value="wheat">Wheat</option>
-                                <option value="rice">Rice</option>
-                                <option value="cotton">Cotton</option>
-                                <option value="sugarcane">Sugarcane</option>
-                            </select>
+                        <h4><i class="fas fa-chart-line"></i> Market Analysis</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="crop-select">Crop</label>
+                                <select id="crop-select">
+                                    <option value="">Select Crop</option>
+                                    <option value="wheat">Wheat</option>
+                                    <option value="rice">Rice</option>
+                                    <option value="cotton">Cotton</option>
+                                    <option value="sugarcane">Sugarcane</option>
+                                    <option value="maize">Maize</option>
+                                    <option value="pulses">Pulses</option>
+                                    <option value="vegetables">Vegetables</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="location-input">Region</label>
+                                <select id="location-input">
+                                    <option value="">Select Region</option>
+                                    <option value="punjab">Punjab</option>
+                                    <option value="haryana">Haryana</option>
+                                    <option value="uttar-pradesh">Uttar Pradesh</option>
+                                    <option value="maharashtra">Maharashtra</option>
+                                    <option value="karnataka">Karnataka</option>
+                                    <option value="tamil-nadu">Tamil Nadu</option>
+                                    <option value="gujarat">Gujarat</option>
+                                    <option value="west-bengal">West Bengal</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Location</label>
-                            <input type="text" id="location-input" placeholder="Enter your location">
-                        </div>
-                        <button id="analyze-market-btn" class="analyze-btn">Analyze Market</button>
+                        <button id="analyze-market-btn" class="analyze-btn">
+                            <i class="fas fa-search"></i>
+                            Analyze Market
+                        </button>
                     </div>
                     
+                    <!-- Market Analysis Results -->
                     <div class="market-analysis" id="market-analysis" style="display: none;">
-                        <h4>Market Analysis</h4>
+                        <div class="analysis-header">
+                            <h4><i class="fas fa-chart-bar"></i> Market Analysis Results</h4>
+                            <div class="analysis-actions">
+                                <button id="export-data" class="export-btn">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <button id="refresh-data" class="refresh-btn">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Trends Chart -->
+                        <div class="chart-container">
+                            <h5><i class="fas fa-chart-line"></i> Crop Price Trends (Last 6 Months)</h5>
+                            <div class="chart-wrapper">
+                                <canvas id="priceTrendsChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Regional Analysis -->
+                        <div class="regional-analysis">
+                            <h5><i class="fas fa-map-marker-alt"></i> Regional Crop Performance</h5>
+                            <div class="region-grid">
+                                <div class="region-card">
+                                    <h6>Punjab</h6>
+                                    <div class="crop-performance">
+                                        <span class="crop">Wheat</span>
+                                        <span class="price">₹2,150/qtl</span>
+                                        <span class="trend up">+8%</span>
+                                    </div>
+                                </div>
+                                <div class="region-card">
+                                    <h6>Haryana</h6>
+                                    <div class="crop-performance">
+                                        <span class="crop">Rice</span>
+                                        <span class="price">₹1,850/qtl</span>
+                                        <span class="trend up">+5%</span>
+                                    </div>
+                                </div>
+                                <div class="region-card">
+                                    <h6>Uttar Pradesh</h6>
+                                    <div class="crop-performance">
+                                        <span class="crop">Sugarcane</span>
+                                        <span class="price">₹3,200/qtl</span>
+                                        <span class="trend down">-2%</span>
+                                    </div>
+                                </div>
+                                <div class="region-card">
+                                    <h6>Maharashtra</h6>
+                                    <div class="crop-performance">
+                                        <span class="crop">Cotton</span>
+                                        <span class="price">₹6,500/qtl</span>
+                                        <span class="trend up">+12%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Best Crops for Money -->
+                        <div class="best-crops-section">
+                            <h5><i class="fas fa-star"></i> Best Crops for Maximum Profit</h5>
+                            <div class="crops-ranking">
+                                <div class="crop-rank">
+                                    <div class="rank-number">1</div>
+                                    <div class="crop-info">
+                                        <h6>Cotton</h6>
+                                        <p>Maharashtra - ₹6,500/qtl</p>
+                                        <span class="profit-margin">+15% Profit Margin</span>
+                                    </div>
+                                </div>
+                                <div class="crop-rank">
+                                    <div class="rank-number">2</div>
+                                    <div class="crop-info">
+                                        <h6>Wheat</h6>
+                                        <p>Punjab - ₹2,150/qtl</p>
+                                        <span class="profit-margin">+12% Profit Margin</span>
+                                    </div>
+                                </div>
+                                <div class="crop-rank">
+                                    <div class="rank-number">3</div>
+                                    <div class="crop-info">
+                                        <h6>Sugarcane</h6>
+                                        <p>Uttar Pradesh - ₹3,200/qtl</p>
+                                        <span class="profit-margin">+10% Profit Margin</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="analysis-content" id="market-analysis-content"></div>
                     </div>
                 </div>
