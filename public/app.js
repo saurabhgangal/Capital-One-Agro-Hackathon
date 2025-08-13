@@ -28,6 +28,10 @@ class KisanAI {
 
         // Initialize WhatsApp Manager
         this.whatsappManager = new WhatsAppManager();
+        
+        // Set Hindi as default language and update all UI text
+        this.currentLanguage = 'hi';
+        this.updateUILanguage();
     }
 
     setupEventListeners() {
@@ -971,6 +975,11 @@ class KisanAI {
         
         // Update UI language
         this.updateUILanguage();
+        
+        // Update voice recognition language
+        if (this.recognition) {
+            this.recognition.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+        }
     }
 
     // Auto-detect language from text
@@ -992,15 +1001,89 @@ class KisanAI {
         const dashboardHeader = document.querySelector('.dashboard-header h2');
         if (dashboardHeader) {
             dashboardHeader.textContent = this.currentLanguage === 'hi' 
-                ? '🌾 आपके फार्म डैशबोर्ड में स्वागत है'
-                : '🌾 Welcome to Your Farm Dashboard';
+                ? '🌾 किसान AI में आपका स्वागत है'
+                : '🌾 Welcome to Kisan AI';
         }
         
         const dashboardSubtext = document.querySelector('.dashboard-header p');
         if (dashboardSubtext) {
             dashboardSubtext.textContent = this.currentLanguage === 'hi'
-                ? 'अपनी फसल की सफलता के लिए व्यक्तिगत जानकारी और सिफारिशें प्राप्त करें'
-                : 'Get personalized insights and recommendations for your farming success';
+                ? 'आपका बुद्धिमान फार्मिंग साथी जो उन्नत AI तकनीक से संचालित है। व्यक्तिगत जानकारी, फसल सिफारिशें, और बाजार की जानकारी प्राप्त करें।'
+                : 'Your intelligent farming companion powered by advanced AI technology. Get personalized insights, crop recommendations, and market intelligence.';
+        }
+        
+        // Update Quick Actions section
+        const quickActionsTitle = document.querySelector('.quick-actions h3');
+        if (quickActionsTitle) {
+            quickActionsTitle.innerHTML = this.currentLanguage === 'hi' 
+                ? '<i class="fas fa-rocket"></i> त्वरित कार्य'
+                : '<i class="fas fa-rocket"></i> Quick Actions';
+        }
+        
+        // Update Quick Action buttons
+        const actionBtns = document.querySelectorAll('.action-btn span');
+        actionBtns.forEach(btn => {
+            const action = btn.parentElement.dataset.action;
+            if (action === 'chat') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'AI चैट' : 'AI Chat';
+            } else if (action === 'disease') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'रोग पहचान' : 'Disease Detection';
+            } else if (action === 'market') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'बाजार जानकारी' : 'Market Intel';
+            } else if (action === 'irrigation') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'स्मार्ट सिंचाई' : 'Smart Irrigation';
+            } else if (action === 'custom-data') {
+                btn.textContent = this.currentLanguage === 'hi' ? 'कस्टम डेटा' : 'Custom Data';
+            }
+        });
+        
+        // Update Weather section
+        const weatherTitle = document.querySelector('.weather-widget h3');
+        if (weatherTitle) {
+            weatherTitle.innerHTML = this.currentLanguage === 'hi' 
+                ? '<i class="fas fa-satellite"></i> मौसम जानकारी'
+                : '<i class="fas fa-satellite"></i> Weather Intelligence';
+        }
+        
+        const weatherLocation = document.querySelector('.weather-info h4');
+        if (weatherLocation) {
+            weatherLocation.textContent = this.currentLanguage === 'hi' ? 'दिल्ली, भारत' : 'Delhi, India';
+        }
+        
+        const weatherCondition = document.querySelector('.weather-info .condition');
+        if (weatherCondition) {
+            weatherCondition.textContent = this.currentLanguage === 'hi' ? 'स्प्रे के लिए उपयुक्त' : 'Optimal for spraying';
+        }
+        
+        const weatherAlert = document.querySelector('.weather-alerts .alert-badge');
+        if (weatherAlert) {
+            weatherAlert.textContent = this.currentLanguage === 'hi' ? '⚠️ 2 दिन में बारिश' : '⚠️ Rain in 2 days';
+        }
+        
+        const weatherBtn = document.querySelector('.weather-details-btn');
+        if (weatherBtn) {
+            weatherBtn.textContent = this.currentLanguage === 'hi' ? 'उन्नत पूर्वानुमान' : 'Advanced Forecast';
+        }
+        
+        // Update Market section
+        const marketTitle = document.querySelector('.market-updates h3');
+        if (marketTitle) {
+            marketTitle.innerHTML = this.currentLanguage === 'hi' 
+                ? '<i class="fas fa-chart-line"></i> बाजार जानकारी'
+                : '<i class="fas fa-chart-line"></i> Market Intelligence';
+        }
+        
+        // Update Schemes section
+        const schemesTitle = document.querySelector('.schemes-widget h3');
+        if (schemesTitle) {
+            schemesTitle.innerHTML = this.currentLanguage === 'hi' 
+                ? '<i class="fas fa-landmark"></i> सरकारी योजनाएं'
+                : '<i class="fas fa-landmark"></i> Government Schemes';
+        }
+        
+        const schemesBtn = document.querySelector('.schemes-widget .weather-details-btn');
+        if (schemesBtn) {
+            schemesBtn.textContent = this.currentLanguage === 'hi' ? 'योजनाएं खोजें' : 'Discover Schemes';
         }
         
         // Update navigation
@@ -1021,6 +1104,41 @@ class KisanAI {
                 btn.textContent = this.currentLanguage === 'hi' ? 'योजनाएं' : 'Schemes';
             }
         });
+        
+        // Update section headers
+        this.updateSectionHeaders();
+    }
+    
+    updateSectionHeaders() {
+        // Update AI Chat section
+        const chatHeader = document.querySelector('#chat-section .chat-header h3');
+        if (chatHeader) {
+            chatHeader.textContent = this.currentLanguage === 'hi' ? '🤖 AI फार्मिंग सहायक' : '🤖 AI Farming Assistant';
+        }
+        
+        // Update Disease Detection section
+        const diseaseHeader = document.querySelector('#disease-section .section-header h3');
+        if (diseaseHeader) {
+            diseaseHeader.textContent = this.currentLanguage === 'hi' ? '🔬 फसल रोग पहचान' : '🔬 Crop Disease Detection';
+        }
+        
+        // Update Market section
+        const marketHeader = document.querySelector('#market-section .section-header h3');
+        if (marketHeader) {
+            marketHeader.textContent = this.currentLanguage === 'hi' ? '📊 बाजार जानकारी' : '📊 Market Intelligence';
+        }
+        
+        // Update Irrigation section
+        const irrigationHeader = document.querySelector('#irrigation-section .section-header h3');
+        if (irrigationHeader) {
+            irrigationHeader.textContent = this.currentLanguage === 'hi' ? '💧 स्मार्ट सिंचाई' : '💧 Smart Irrigation';
+        }
+        
+        // Update Custom Data section
+        const customDataHeader = document.querySelector('#custom-data-section .section-header h3');
+        if (customDataHeader) {
+            customDataHeader.textContent = this.currentLanguage === 'hi' ? '🗄️ कस्टम डेटा प्रबंधन' : '🗄️ Custom Dataset Management';
+        }
     }
 
     showProfile() {
@@ -1108,30 +1226,23 @@ class KisanAI {
 
     async getWeatherIntelligence() {
         try {
-            this.showNotification('🌦️ Fetching weather intelligence...', 'info');
+            // Redirect to a third-party weather forecasting website
+            const weatherUrl = 'https://www.accuweather.com/en/in/delhi/202396/weather-forecast/202396';
             
-            const response = await fetch('/api/market/weather-intelligence', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    location: 'Punjab, India',
-                    crop: 'Rice',
-                    operationType: 'Spraying'
-                })
-            });
+            // Open in new tab
+            window.open(weatherUrl, '_blank');
             
-            const data = await response.json();
+            const message = this.currentLanguage === 'hi' 
+                ? '🌤️ विस्तृत मौसम पूर्वानुमान नई टैब में खुल रहा है...' 
+                : '🌤️ Opening detailed weather forecast in new tab...';
             
-            if (data.success) {
-                this.displayAdvancedAnalysis('🌦️ Weather Intelligence', data.weatherIntelligence);
-                this.showNotification('⚡ Weather analysis ready!', 'success');
-            } else {
-                this.showNotification('Weather feature coming soon!', 'info');
-            }
-            
+            this.showNotification(message, 'success');
         } catch (error) {
-            console.error('Weather Intelligence Error:', error);
-            this.showNotification('Weather feature coming soon!', 'info');
+            console.error('Weather redirect error:', error);
+            const errorMsg = this.currentLanguage === 'hi' 
+                ? 'मौसम पूर्वानुमान खोलने में विफल' 
+                : 'Failed to open weather forecast';
+            this.showNotification(errorMsg, 'error');
         }
     }
 
@@ -1173,7 +1284,8 @@ class KisanAI {
             this.recognition.maxAlternatives = 1;
             
             this.recognition.onstart = () => {
-                this.updateVoiceStatus('Listening... Speak now', 'listening');
+                const status = this.currentLanguage === 'hi' ? 'सुन रहा हूं... बोलिए' : 'Listening... Speak now';
+                this.updateVoiceStatus(status, 'listening');
                 const recordBtn = document.getElementById('start-recording');
                 const stopBtn = document.getElementById('stop-recording');
                 if (recordBtn) recordBtn.style.display = 'none';
@@ -1183,17 +1295,20 @@ class KisanAI {
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 this.displayTranscript(transcript);
-                this.updateVoiceStatus('Speech recognized successfully!', '');
+                const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
+                this.updateVoiceStatus(status, '');
             };
             
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                this.updateVoiceStatus(`Error: ${event.error}`, 'error');
+                const errorMsg = this.currentLanguage === 'hi' ? `त्रुटि: ${event.error}` : `Error: ${event.error}`;
+                this.updateVoiceStatus(errorMsg, 'error');
                 this.resetVoiceButtons();
             };
             
             this.recognition.onend = () => {
-                this.updateVoiceStatus('Ready to listen...', '');
+                const status = this.currentLanguage === 'hi' ? 'सुनने के लिए तैयार...' : 'Ready to listen...';
+                this.updateVoiceStatus(status, '');
                 this.resetVoiceButtons();
             };
             
@@ -1254,8 +1369,8 @@ class KisanAI {
             return;
         }
 
-        const languageSelect = document.getElementById('voice-language');
-        const selectedLanguage = languageSelect ? languageSelect.value : 'hi-IN';
+        // Auto-detect language based on current app language
+        const selectedLanguage = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
         
         this.recognition.lang = selectedLanguage;
         this.isVoiceRecording = true;
