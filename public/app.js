@@ -30,8 +30,8 @@ class KisanAI {
         // Initialize WhatsApp Manager
         this.whatsappManager = new WhatsAppManager();
         
-        // Set Hindi as default language and update all UI text
-        this.currentLanguage = 'hi';
+        // Set English as default language and update all UI text
+        this.currentLanguage = 'en';
         this.updateUILanguage();
         this.updateLanguageToggleDisplay();
     }
@@ -131,6 +131,9 @@ class KisanAI {
                 }
             });
         }
+        
+        // Add voice event listeners for schemes chat
+        this.setupSchemesVoiceEventListeners();
 
         // Disease detection
         const uploadArea = document.getElementById('upload-area');
@@ -1493,6 +1496,13 @@ class KisanAI {
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 this.displayTranscript(transcript);
+                
+                // Also add to schemes chat if we're in schemes section
+                if (this.currentSection === 'schemes-chat') {
+                    this.addSchemesMessage('user', transcript);
+                    this.processSchemesMessage(transcript);
+                }
+                
                 const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
                 this.updateVoiceStatus(status, '');
             };
@@ -1536,6 +1546,23 @@ class KisanAI {
 
         document.getElementById('use-transcript')?.addEventListener('click', () => {
             this.useTranscript();
+        });
+    }
+    
+    setupSchemesVoiceEventListeners() {
+        // Voice button in schemes chat header
+        document.getElementById('schemes-voice-btn')?.addEventListener('click', () => {
+            this.toggleSchemesVoiceInterface();
+        });
+        
+        // Voice input button in schemes chat input
+        document.getElementById('schemes-voice-input-btn')?.addEventListener('click', () => {
+            this.startSchemesVoiceRecording();
+        });
+        
+        // Send button in schemes chat
+        document.getElementById('schemes-send-btn')?.addEventListener('click', () => {
+            this.sendSchemesMessage();
         });
     }
 
@@ -1615,9 +1642,123 @@ class KisanAI {
         
         if (transcriptText && chatInput) {
             chatInput.value = transcriptText.textContent;
-            this.closeVoiceInterface();
-            this.showNotification('✅ Voice input added to chat!', 'success');
+            document.getElementById('voice-transcript').style.display = 'none';
         }
+    }
+    
+    // Schemes Voice Methods
+    toggleSchemesVoiceInterface() {
+        const schemesVoiceBtn = document.getElementById('schemes-voice-btn');
+        if (schemesVoiceBtn) {
+            const btnText = schemesVoiceBtn.querySelector('.btn-text');
+            if (this.isVoiceRecording) {
+                this.stopSchemesVoiceRecording();
+                btnText.textContent = 'Voice';
+                schemesVoiceBtn.classList.remove('recording');
+            } else {
+                this.startSchemesVoiceRecording();
+                btnText.textContent = 'Stop';
+                schemesVoiceBtn.classList.add('recording');
+            }
+        }
+    }
+    
+    startSchemesVoiceRecording() {
+        if (!this.recognition) {
+            this.showNotification('❌ Speech recognition not supported in this browser', 'error');
+            return;
+        }
+        
+        // Auto-detect language based on current app language
+        const selectedLanguage = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+        
+        this.recognition.lang = selectedLanguage;
+        this.isVoiceRecording = true;
+        
+        try {
+            this.recognition.start();
+            this.showNotification('🎤 Listening... Speak now', 'info');
+            
+            // Update button state
+            const schemesVoiceBtn = document.getElementById('schemes-voice-btn');
+            if (schemesVoiceBtn) {
+                schemesVoiceBtn.classList.add('recording');
+            }
+        } catch (error) {
+            console.error('Error starting schemes voice recognition:', error);
+            this.showNotification('❌ Could not start voice recognition', 'error');
+            this.resetSchemesVoiceButtons();
+        }
+    }
+    
+    stopSchemesVoiceRecording() {
+        if (this.recognition && this.isVoiceRecording) {
+            this.recognition.stop();
+            this.isVoiceRecording = false;
+            
+            // Update button state
+            const schemesVoiceBtn = document.getElementById('schemes-voice-btn');
+            if (schemesVoiceBtn) {
+                schemesVoiceBtn.classList.remove('recording');
+            }
+            
+            this.showNotification('🔄 Processing voice input...', 'info');
+        }
+    }
+    
+    resetSchemesVoiceButtons() {
+        const schemesVoiceBtn = document.getElementById('schemes-voice-btn');
+        if (schemesVoiceBtn) {
+            schemesVoiceBtn.classList.remove('recording');
+            const btnText = schemesVoiceBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Voice';
+        }
+    }
+    
+    sendSchemesMessage() {
+        const input = document.getElementById('schemes-chat-input');
+        if (input && input.value.trim()) {
+            const message = input.value.trim();
+            this.addSchemesMessage('user', message);
+            input.value = '';
+            
+            // Process the message (you can add AI processing here)
+            this.processSchemesMessage(message);
+        }
+    }
+    
+    addSchemesMessage(sender, message) {
+        const messagesContainer = document.getElementById('schemes-chat-messages');
+        if (messagesContainer) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const avatar = sender === 'user' ? '👤' : '🏛️';
+            const messageContent = sender === 'user' ? 
+                `<div class="message-avatar">${avatar}</div>
+                 <div class="message-content"><p>${message}</p></div>` :
+                `<div class="message-avatar">${avatar}</div>
+                 <div class="message-content"><p>${message}</p></div>`;
+            
+            messageDiv.innerHTML = messageContent;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+    
+    processSchemesMessage(message) {
+        // Simple response for now - you can integrate with AI later
+        const responses = [
+            'Thank you for your message. I\'m here to help with government schemes.',
+            'I understand your query. Let me provide you with relevant information.',
+            'Great question! Here are some schemes that might help you.',
+            'I\'ll help you find the right government scheme for your needs.'
+        ];
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        setTimeout(() => {
+            this.addSchemesMessage('ai', randomResponse);
+        }, 1000);
     }
 
     resetVoiceButtons() {
