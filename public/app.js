@@ -1509,7 +1509,7 @@ class KisanAI {
                 
                 this.recognition.continuous = false;
                 this.recognition.interimResults = false;
-                this.recognition.maxAlternatives = 1;
+                this.recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
                 
                 this.recognition.onstart = () => {
                     console.log('Voice recognition started');
@@ -1524,18 +1524,44 @@ class KisanAI {
                 this.recognition.onresult = (event) => {
                     console.log('Voice recognition result:', event.results);
                     if (event.results && event.results.length > 0) {
-                        const transcript = event.results[0][0].transcript;
-                        console.log('Transcript:', transcript);
-                        this.displayTranscript(transcript);
+                        // Get the best transcript with highest confidence
+                        let bestTranscript = '';
+                        let highestConfidence = 0;
                         
-                        // Also add to schemes chat if we're in schemes section
-                        if (this.currentSection === 'schemes-chat') {
-                            this.addSchemesMessage('user', transcript);
-                            this.processSchemesMessage(transcript);
+                        for (let i = 0; i < event.results.length; i++) {
+                            const result = event.results[i];
+                            for (let j = 0; j < result.length; j++) {
+                                const alternative = result[j];
+                                if (alternative.confidence > highestConfidence) {
+                                    highestConfidence = alternative.confidence;
+                                    bestTranscript = alternative.transcript;
+                                }
+                            }
                         }
                         
-                        const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
-                        this.updateVoiceStatus(status, 'success');
+                        // If no confidence scores, use the first transcript
+                        if (!bestTranscript && event.results[0][0]) {
+                            bestTranscript = event.results[0][0].transcript;
+                        }
+                        
+                        console.log('Best transcript:', bestTranscript, 'Confidence:', highestConfidence);
+                        
+                        if (bestTranscript) {
+                            // Clean and process the transcript
+                            const cleanedTranscript = this.cleanTranscript(bestTranscript);
+                            console.log('Cleaned transcript:', cleanedTranscript);
+                            
+                            this.displayTranscript(cleanedTranscript);
+                            
+                            // Also add to schemes chat if we're in schemes section
+                            if (this.currentSection === 'schemes-chat') {
+                                this.addSchemesMessage('user', cleanedTranscript);
+                                this.processSchemesMessage(cleanedTranscript);
+                            }
+                            
+                            const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
+                            this.updateVoiceStatus(status, 'success');
+                        }
                     }
                 };
                 
@@ -1886,55 +1912,16 @@ class KisanAI {
                 this.priceChart.destroy();
             }
             
-            // Sample data for 6 months
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-            const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
-            const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
-            const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
-            const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
+            // Get real-time data from ChatGPT API or use fallback data
+            const chartData = this.getChartData();
+            
+            console.log('Creating chart with data:', chartData);
         
         this.priceChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: 'Wheat (₹/qtl)',
-                        data: wheatPrices,
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Rice (₹/qtl)',
-                        data: ricePrices,
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Cotton (₹/qtl)',
-                        data: cottonPrices,
-                        borderColor: '#F59E0B',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Sugarcane (₹/qtl)',
-                        data: sugarcanePrices,
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
+                labels: chartData.labels,
+                datasets: chartData.datasets
             },
             options: {
                 responsive: true,
@@ -2200,6 +2187,199 @@ class KisanAI {
         console.log('🌍 Current language:', this.currentLanguage);
         
         console.log('🔍 App status debug complete');
+    }
+    
+    // Get chart data from ChatGPT API or fallback
+    async getChartData() {
+        try {
+            // Try to get real-time data from ChatGPT API
+            const response = await fetch('/api/ai/market-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    request: 'Get current crop prices for wheat, rice, cotton, and sugarcane for the last 6 months in India'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.marketData) {
+                    console.log('✅ Real-time market data received from ChatGPT API');
+                    return this.formatMarketDataForChart(data.marketData);
+                }
+            }
+        } catch (error) {
+            console.warn('ChatGPT API call failed, using fallback data:', error);
+        }
+        
+        // Fallback to realistic sample data
+        console.log('📊 Using fallback market data');
+        return this.getFallbackChartData();
+    }
+    
+    // Format ChatGPT API response for chart
+    formatMarketDataForChart(apiData) {
+        try {
+            // Parse the API response and extract price data
+            // This will depend on the actual API response format
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            
+            // Extract prices from API response (adjust based on actual format)
+            const wheatPrices = this.extractPricesFromAPI(apiData, 'wheat') || [1850, 1920, 1980, 2050, 2120, 2150];
+            const ricePrices = this.extractPricesFromAPI(apiData, 'rice') || [1650, 1720, 1780, 1820, 1830, 1850];
+            const cottonPrices = this.extractPricesFromAPI(apiData, 'cotton') || [5800, 5900, 6000, 6100, 6300, 6500];
+            const sugarcanePrices = this.extractPricesFromAPI(apiData, 'sugarcane') || [3000, 3050, 3100, 3150, 3180, 3200];
+            
+            return {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Wheat (₹/qtl)',
+                        data: wheatPrices,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Rice (₹/qtl)',
+                        data: ricePrices,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Cotton (₹/qtl)',
+                        data: cottonPrices,
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sugarcane (₹/qtl)',
+                        data: sugarcanePrices,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            };
+        } catch (error) {
+            console.error('Error formatting API data:', error);
+            return this.getFallbackChartData();
+        }
+    }
+    
+    // Extract prices from API response
+    extractPricesFromAPI(apiData, cropType) {
+        try {
+            // This method will parse the ChatGPT API response
+            // Adjust based on the actual response format
+            if (apiData && apiData.prices && apiData.prices[cropType]) {
+                return apiData.prices[cropType];
+            }
+            return null;
+        } catch (error) {
+            console.error('Error extracting prices for', cropType, ':', error);
+            return null;
+        }
+    }
+    
+    // Fallback chart data
+    getFallbackChartData() {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
+        const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
+        const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
+        const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
+        
+        return {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Wheat (₹/qtl)',
+                    data: wheatPrices,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Rice (₹/qtl)',
+                    data: ricePrices,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Cotton (₹/qtl)',
+                    data: cottonPrices,
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sugarcane (₹/qtl)',
+                        data: sugarcanePrices,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            };
+        }
+    
+    // Clean and process voice transcript for better accuracy
+    cleanTranscript(transcript) {
+        if (!transcript) return '';
+        
+        let cleaned = transcript.trim();
+        
+        // Remove common speech recognition artifacts
+        cleaned = cleaned.replace(/\b(um|uh|ah|er|hmm)\b/gi, '');
+        cleaned = cleaned.replace(/\s+/g, ' '); // Remove extra spaces
+        
+        // Fix common misrecognitions
+        const commonFixes = {
+            'kisan': 'kisan',
+            'kisan ai': 'kisan ai',
+            'kisanai': 'kisan ai',
+            'kisan a i': 'kisan ai',
+            'kisan a': 'kisan ai',
+            'kisan eye': 'kisan ai',
+            'kisan i': 'kisan ai',
+            'kisan high': 'kisan ai',
+            'kisan hi': 'kisan ai',
+            'kisan bye': 'kisan ai',
+            'kisan buy': 'kisan ai',
+            'kisan by': 'kisan ai'
+        };
+        
+        Object.entries(commonFixes).forEach(([wrong, correct]) => {
+            cleaned = cleaned.replace(new RegExp(wrong, 'gi'), correct);
+        });
+        
+        // Capitalize first letter
+        if (cleaned.length > 0) {
+            cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+        
+        console.log('Transcript cleaned:', transcript, '->', cleaned);
+        return cleaned;
     }
 
     resetVoiceButtons() {
