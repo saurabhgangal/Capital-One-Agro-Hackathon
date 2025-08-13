@@ -1873,7 +1873,7 @@ class KisanAI {
             marketAnalysis.style.display = 'block';
             
             // Create beautiful charts
-            this.createPriceTrendsChart();
+            await this.createPriceTrendsChart();
             
             // Update regional data based on selection
             this.updateRegionalData(cropSelect.value, locationSelect.value);
@@ -1892,7 +1892,7 @@ class KisanAI {
         }
     }
     
-    createPriceTrendsChart() {
+    async createPriceTrendsChart() {
         try {
             const ctx = document.getElementById('priceTrendsChart');
             if (!ctx) {
@@ -1913,7 +1913,7 @@ class KisanAI {
             }
             
             // Get real-time data from ChatGPT API or use fallback data
-            const chartData = this.getChartData();
+            const chartData = await this.getChartData();
             
             console.log('Creating chart with data:', chartData);
         
@@ -2294,13 +2294,15 @@ class KisanAI {
         }
     }
     
-    // Fallback chart data
+        // Fallback chart data
     getFallbackChartData() {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
         const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
         const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
         const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
         const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
+        
+        console.log('📊 Using fallback chart data');
         
         return {
             labels: months,
@@ -2328,22 +2330,22 @@ class KisanAI {
                     data: cottonPrices,
                     borderColor: '#F59E0B',
                     backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Sugarcane (₹/qtl)',
-                        data: sugarcanePrices,
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            };
-        }
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Sugarcane (₹/qtl)',
+                    data: sugarcanePrices,
+                    borderColor: '#8B5CF6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        };
+    }
     
     // Clean and process voice transcript for better accuracy
     cleanTranscript(transcript) {
@@ -2616,51 +2618,56 @@ function goHome() {
     }
 }
 
-// Global function to show schemes chat (called from HTML onclick)
-function showSchemesChat() {
-    console.log('🔍 showSchemesChat called');
-    
-    // Method 1: Try to use kisanAI if available
-    if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
-        console.log('✅ kisanAI found, navigating to schemes-chat');
-        window.kisanAI.navigateToSection('schemes-chat');
-        return;
-    }
-    
-    // Method 2: Direct DOM manipulation
-    console.log('🔍 Using direct DOM navigation');
-    const schemesSection = document.getElementById('schemes-chat-section');
-    if (schemesSection) {
-        console.log('✅ Found schemes-chat-section, showing directly');
+    // Global function to show schemes chat (called from HTML onclick)
+    function showSchemesChat() {
+        console.log('🔍 showSchemesChat called');
         
-        // Hide all sections first
-        document.querySelectorAll('main > section').forEach(section => {
-            section.style.display = 'none';
-        });
-        
-        // Show schemes section
-        schemesSection.style.display = 'block';
-        
-        // Update navigation buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const schemesNavBtn = document.querySelector('[data-section="schemes-chat"]');
-        if (schemesNavBtn) {
-            schemesNavBtn.classList.add('active');
+        // Method 1: Try to use kisanAI if available
+        if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
+            console.log('✅ kisanAI found, navigating to schemes-chat');
+            window.kisanAI.navigateToSection('schemes-chat');
+            return;
         }
         
-        // Scroll to top
-        window.scrollTo(0, 0);
-        
-        console.log('✅ Successfully navigated to schemes-chat');
-    } else {
-        console.error('❌ schemes-chat-section not found');
-        // Fallback: show error message
-        alert('Schemes section not found. Please refresh the page.');
+        // Method 2: Direct DOM navigation
+        console.log('🔍 Using direct DOM navigation');
+        const schemesSection = document.getElementById('schemes-chat-section');
+        if (schemesSection) {
+            console.log('✅ Found schemes-chat-section, showing directly');
+            
+            // Hide all sections first
+            document.querySelectorAll('main > section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show schemes section
+            schemesSection.style.display = 'block';
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const schemesNavBtn = document.querySelector('[data-section="schemes-chat"]');
+            if (schemesNavBtn) {
+                schemesNavBtn.classList.add('active');
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+            
+            console.log('✅ Successfully navigated to schemes-chat');
+            
+            // Initialize schemes chat if needed
+            if (window.kisanAI && typeof window.kisanAI.initSchemesChat === 'function') {
+                window.kisanAI.initSchemesChat();
+            }
+        } else {
+            console.error('❌ schemes-chat-section not found');
+            // Fallback: show error message
+            alert('Schemes section not found. Please refresh the page.');
+        }
     }
-}
 
 // Make function globally accessible
 window.showSchemesChat = showSchemesChat;
