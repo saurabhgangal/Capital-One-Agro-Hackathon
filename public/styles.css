@@ -2018,15 +2018,28 @@ body {
     padding: 20px;
     margin: 8px 0;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    color: #333 !important;
+}
+
+.schemes-chat-section .message.ai-message .message-content p {
+    color: #333 !important;
+}
+
+.schemes-chat-section .message.ai-message .message-content strong {
+    color: var(--primary-color) !important;
 }
 
 .schemes-chat-section .message.user-message .message-content {
     background: linear-gradient(135deg, var(--primary-color) 0%, #4ade80 100%);
-    color: white;
+    color: white !important;
     border-radius: 16px;
     padding: 16px 20px;
     margin: 8px 0;
     box-shadow: 0 2px 12px rgba(74, 222, 128, 0.3);
+}
+
+.schemes-chat-section .message.user-message .message-content p {
+    color: white !important;
 }
 
 .thinking-message {
@@ -2049,6 +2062,15 @@ body {
 .user-message .message-content {
     background: var(--gradient-accent);
     color: var(--white);
+}
+
+/* Override for schemes chat to ensure proper text colors */
+.schemes-chat-section .message-content {
+    color: #333 !important;
+}
+
+.schemes-chat-section .message-content p {
+    color: #333 !important;
 }
 
 .chat-input-container {
