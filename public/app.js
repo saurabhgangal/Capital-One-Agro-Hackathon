@@ -140,6 +140,9 @@ class KisanAI {
         
         // Ensure navigation is always visible on mobile
         this.ensureMobileNavigation();
+        
+        // Debug app status
+        this.debugAppStatus();
 
         // Disease detection
         const uploadArea = document.getElementById('upload-area');
@@ -419,6 +422,16 @@ class KisanAI {
 
     async startVoiceRecording() {
         try {
+            console.log('Starting voice recording...');
+            
+            // Check if we're using speech recognition or media recording
+            if (this.recognition && this.recognition.state !== 'recording') {
+                console.log('Using speech recognition');
+                this.recognition.start();
+                return;
+            }
+            
+            // Fallback to media recording
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
             this.mediaRecorder = new MediaRecorder(stream);
@@ -443,9 +456,11 @@ class KisanAI {
                 voiceBtn.style.background = '#f44336';
             }
             
+            console.log('Voice recording started successfully');
+            
         } catch (error) {
             console.error('Voice recording failed:', error);
-            this.showNotification('Voice recording not supported', 'error');
+            this.showNotification('Voice recording failed: ' + error.message, 'error');
         }
     }
 
@@ -1100,7 +1115,9 @@ class KisanAI {
                 'kn': 'kn-IN',
                 'ml': 'ml-IN'
             };
-            this.recognition.lang = languageMap[this.currentLanguage] || 'hi-IN';
+            const newLang = languageMap[this.currentLanguage] || 'hi-IN';
+            this.recognition.lang = newLang;
+            console.log('Voice recognition language updated to:', newLang);
         }
     }
     
@@ -1482,54 +1499,70 @@ class KisanAI {
 
     // Voice Recognition Methods
     initVoiceRecognition() {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            this.recognition = new SpeechRecognition();
-            
-            this.recognition.continuous = false;
-            this.recognition.interimResults = false;
-            this.recognition.maxAlternatives = 1;
-            
-            this.recognition.onstart = () => {
-                const status = this.currentLanguage === 'hi' ? 'सुन रहा हूं... बोलिए' : 'Listening... Speak now';
-                this.updateVoiceStatus(status, 'listening');
-                const recordBtn = document.getElementById('start-recording');
-                const stopBtn = document.getElementById('stop-recording');
-                if (recordBtn) recordBtn.style.display = 'none';
-                if (stopBtn) stopBtn.style.display = 'flex';
-            };
-            
-            this.recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                this.displayTranscript(transcript);
+        try {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
                 
-                // Also add to schemes chat if we're in schemes section
-                if (this.currentSection === 'schemes-chat') {
-                    this.addSchemesMessage('user', transcript);
-                    this.processSchemesMessage(transcript);
-                }
+                // Set language based on current app language
+                this.recognition.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
                 
-                const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
-                this.updateVoiceStatus(status, '');
-            };
-            
-            this.recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                const errorMsg = this.currentLanguage === 'hi' ? `त्रुटि: ${event.error}` : `Error: ${event.error}`;
-                this.updateVoiceStatus(errorMsg, 'error');
-                this.resetVoiceButtons();
-            };
-            
-            this.recognition.onend = () => {
-                const status = this.currentLanguage === 'hi' ? 'सुनने के लिए तैयार...' : 'Ready to listen...';
-                this.updateVoiceStatus(status, '');
-                this.resetVoiceButtons();
-            };
-            
-            // Add voice interface event listeners
-            this.setupVoiceEventListeners();
-        } else {
-            console.warn('Speech recognition not supported');
+                this.recognition.continuous = false;
+                this.recognition.interimResults = false;
+                this.recognition.maxAlternatives = 1;
+                
+                this.recognition.onstart = () => {
+                    console.log('Voice recognition started');
+                    const status = this.currentLanguage === 'hi' ? 'सुन रहा हूं... बोलिए' : 'Listening... Speak now';
+                    this.updateVoiceStatus(status, 'listening');
+                    const recordBtn = document.getElementById('start-recording');
+                    const stopBtn = document.getElementById('stop-recording');
+                    if (recordBtn) recordBtn.style.display = 'none';
+                    if (stopBtn) stopBtn.style.display = 'flex';
+                };
+                
+                this.recognition.onresult = (event) => {
+                    console.log('Voice recognition result:', event.results);
+                    if (event.results && event.results.length > 0) {
+                        const transcript = event.results[0][0].transcript;
+                        console.log('Transcript:', transcript);
+                        this.displayTranscript(transcript);
+                        
+                        // Also add to schemes chat if we're in schemes section
+                        if (this.currentSection === 'schemes-chat') {
+                            this.addSchemesMessage('user', transcript);
+                            this.processSchemesMessage(transcript);
+                        }
+                        
+                        const status = this.currentLanguage === 'hi' ? 'भाषण पहचाना गया!' : 'Speech recognized successfully!';
+                        this.updateVoiceStatus(status, 'success');
+                    }
+                };
+                
+                this.recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    const errorMsg = this.currentLanguage === 'hi' ? `त्रुटि: ${event.error}` : `Error: ${event.error}`;
+                    this.updateVoiceStatus(errorMsg, 'error');
+                    this.resetVoiceButtons();
+                };
+                
+                this.recognition.onend = () => {
+                    console.log('Voice recognition ended');
+                    const status = this.currentLanguage === 'hi' ? 'सुनने के लिए तैयार...' : 'Ready to listen...';
+                    this.updateVoiceStatus(status, '');
+                    this.resetVoiceButtons();
+                };
+                
+                // Add voice interface event listeners
+                this.setupVoiceEventListeners();
+                console.log('Voice recognition initialized successfully');
+            } else {
+                console.warn('Speech recognition not supported in this browser');
+                this.showNotification('Voice recognition not supported in this browser', 'warning');
+            }
+        } catch (error) {
+            console.error('Failed to initialize voice recognition:', error);
+            this.showNotification('Failed to initialize voice recognition', 'error');
         }
     }
 
@@ -1786,22 +1819,32 @@ class KisanAI {
     }
     
     async analyzeMarket() {
-        const cropSelect = document.getElementById('crop-select');
-        const locationSelect = document.getElementById('location-input');
-        
-        if (!cropSelect.value || !locationSelect.value) {
-            this.showNotification('Please select both crop and region', 'warning');
-            return;
-        }
-        
         try {
+            const cropSelect = document.getElementById('crop-select');
+            const locationSelect = document.getElementById('location-input');
+            
+            if (!cropSelect || !locationSelect) {
+                console.error('Market form elements not found');
+                this.showNotification('Market form not loaded properly', 'error');
+                return;
+            }
+            
+            if (!cropSelect.value || !locationSelect.value) {
+                this.showNotification('Please select both crop and region', 'warning');
+                return;
+            }
+            
             this.showNotification('🔍 Analyzing market data...', 'info');
             
             // Show analysis results
             const marketAnalysis = document.getElementById('market-analysis');
-            if (marketAnalysis) {
-                marketAnalysis.style.display = 'block';
+            if (!marketAnalysis) {
+                console.error('Market analysis section not found');
+                this.showNotification('Market analysis section not found', 'error');
+                return;
             }
+            
+            marketAnalysis.style.display = 'block';
             
             // Create beautiful charts
             this.createPriceTrendsChart();
@@ -1819,25 +1862,36 @@ class KisanAI {
             
         } catch (error) {
             console.error('Market analysis error:', error);
-            this.showNotification('❌ Market analysis failed', 'error');
+            this.showNotification('❌ Market analysis failed: ' + error.message, 'error');
         }
     }
     
     createPriceTrendsChart() {
-        const ctx = document.getElementById('priceTrendsChart');
-        if (!ctx) return;
-        
-        // Destroy existing chart if it exists
-        if (this.priceChart) {
-            this.priceChart.destroy();
-        }
-        
-        // Sample data for 6 months
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
-        const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
-        const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
-        const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
+        try {
+            const ctx = document.getElementById('priceTrendsChart');
+            if (!ctx) {
+                console.error('Price trends chart canvas not found');
+                return;
+            }
+            
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                this.showNotification('Chart.js not loaded. Please refresh the page.', 'error');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if (this.priceChart) {
+                this.priceChart.destroy();
+            }
+            
+            // Sample data for 6 months
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
+            const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
+            const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
+            const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
         
         this.priceChart = new Chart(ctx, {
             type: 'line',
@@ -1949,6 +2003,13 @@ class KisanAI {
                 }
             }
         });
+        
+        console.log('Price trends chart created successfully');
+        
+    } catch (error) {
+        console.error('Failed to create price trends chart:', error);
+        this.showNotification('Failed to create chart: ' + error.message, 'error');
+    }
     }
     
     updateRegionalData(crop, region) {
@@ -2106,6 +2167,39 @@ class KisanAI {
             console.log('🔄 Navigation was hidden, restoring visibility...');
             this.ensureMobileNavigation();
         }
+    }
+    
+    debugAppStatus() {
+        console.log('🔍 Debugging app status...');
+        
+        // Check critical elements
+        const criticalElements = {
+            'bottom-nav': document.querySelector('.bottom-nav'),
+            'market-analysis': document.querySelector('#market-analysis'),
+            'priceTrendsChart': document.querySelector('#priceTrendsChart'),
+            'voice-interface': document.querySelector('#voice-interface'),
+            'recognition': this.recognition,
+            'Chart': typeof Chart
+        };
+        
+        Object.entries(criticalElements).forEach(([name, element]) => {
+            if (element) {
+                console.log(`✅ ${name}: Found`);
+            } else {
+                console.log(`❌ ${name}: Not found`);
+            }
+        });
+        
+        // Check browser capabilities
+        console.log('🌐 Browser capabilities:');
+        console.log('- Speech Recognition:', 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+        console.log('- Media Devices:', 'mediaDevices' in navigator);
+        console.log('- Chart.js:', typeof Chart);
+        
+        // Check current language
+        console.log('🌍 Current language:', this.currentLanguage);
+        
+        console.log('🔍 App status debug complete');
     }
 
     resetVoiceButtons() {
