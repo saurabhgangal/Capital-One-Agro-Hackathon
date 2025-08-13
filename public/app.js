@@ -2656,16 +2656,16 @@ function goHome() {
     }
 }
 
-    // Global function to show schemes chat (called from HTML onclick)
-    function showSchemesChat() {
-        console.log('🔍 showSchemesChat called');
-        
-        // Method 1: Try to use kisanAI if available
-        if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
-            console.log('✅ kisanAI found, navigating to schemes-chat');
-            window.kisanAI.navigateToSection('schemes-chat');
-            return;
-        }
+// Global function to show schemes chat (called from HTML onclick)
+function showSchemesChat() {
+    console.log('🔍 showSchemesChat called');
+    
+    // Method 1: Try to use kisanAI if available
+    if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
+        console.log('✅ kisanAI found, navigating to schemes-chat');
+        window.kisanAI.navigateToSection('schemes-chat');
+        return;
+    }
         
         // Method 2: Direct DOM navigation
         console.log('🔍 Using direct DOM navigation');
