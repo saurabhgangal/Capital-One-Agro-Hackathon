@@ -2623,9 +2623,22 @@ body {
     height: 100%;
     object-fit: cover;
     z-index: -1;
-    opacity: 0.15;
+    opacity: 0.3; /* Increased opacity for testing */
     filter: brightness(0.8) contrast(1.2);
     transition: opacity 0.3s ease;
+}
+
+/* GIF fallback for when videos don't work */
+.background-gif-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.2;
+    filter: brightness(0.8) contrast(1.2);
 }
 
 .background-video:hover {

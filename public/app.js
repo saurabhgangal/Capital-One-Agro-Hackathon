@@ -1669,28 +1669,47 @@ class WhatsAppManager {
     // Initialize background videos with fallbacks
     initializeBackgroundVideos() {
         const videos = document.querySelectorAll('.background-video');
+        console.log(`Found ${videos.length} background videos to initialize`);
         
-        videos.forEach(video => {
+        videos.forEach((video, index) => {
+            console.log(`Initializing video ${index + 1}:`, video);
+            
             // Check if video is supported
             if (video.canPlayType) {
+                console.log(`Video ${index + 1} supports video playback`);
+                
                 // Add loading event listeners
                 video.addEventListener('loadeddata', () => {
-                    console.log('Background video loaded successfully');
+                    console.log(`Video ${index + 1} loaded successfully`);
                 });
                 
-                video.addEventListener('error', () => {
-                    console.log('Video failed to load, using fallback image');
+                video.addEventListener('error', (e) => {
+                    console.error(`Video ${index + 1} failed to load:`, e);
                     this.useVideoFallback(video);
+                });
+                
+                video.addEventListener('loadstart', () => {
+                    console.log(`Video ${index + 1} started loading`);
                 });
                 
                 // Add performance optimizations
                 video.addEventListener('canplay', () => {
-                    video.play().catch(e => {
-                        console.log('Auto-play prevented, video will play on interaction');
+                    console.log(`Video ${index + 1} can play, attempting to start`);
+                    video.play().then(() => {
+                        console.log(`Video ${index + 1} started playing successfully`);
+                    }).catch(e => {
+                        console.log(`Video ${index + 1} auto-play prevented:`, e.message);
+                        // Try to play on user interaction
+                        document.addEventListener('click', () => {
+                            video.play().catch(err => console.log(`Video ${index + 1} play failed:`, err.message));
+                        }, { once: true });
                     });
                 });
+                
+                // Force load the video
+                video.load();
             } else {
-                // Browser doesn't support video, use fallback immediately
+                console.log(`Video ${index + 1} doesn't support video playback, using fallback`);
                 this.useVideoFallback(video);
             }
         });
@@ -1698,18 +1717,32 @@ class WhatsAppManager {
 
     // Use fallback image when video fails
     useVideoFallback(video) {
+        console.log('Using fallback for video:', video);
+        
+        // First try to show GIF fallback if available
+        const gifFallback = video.parentElement.querySelector('.background-gif-fallback');
+        if (gifFallback) {
+            console.log('Showing GIF fallback');
+            video.style.display = 'none';
+            gifFallback.style.display = 'block';
+            return;
+        }
+        
+        // Fallback to static images
         const fallbackImages = {
             'dashboard-section': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
             'irrigation-section': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
             'chat-section': 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
             'disease-section': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
             'market-section': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
-            'schemes-chat-section': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&crop=80',
+            'schemes-chat-section': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop&crop=center&auto=format&q=80',
             'custom-data-section': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center&auto=format&q=80'
         };
 
         const sectionId = video.closest('section').id;
         const fallbackUrl = fallbackImages[sectionId] || fallbackImages['dashboard-section'];
+        
+        console.log('Using static image fallback:', fallbackUrl);
         
         // Replace video with background image
         video.style.display = 'none';

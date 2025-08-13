@@ -62,10 +62,12 @@
             <!-- Dashboard Section -->
             <section id="dashboard-section" class="dashboard-section">
                 <!-- Background Video: Farmers working in field -->
-                <video class="background-video" autoplay muted loop playsinline>
-                    <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
+                <video class="background-video" autoplay muted loop playsinline preload="metadata">
+                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                     <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
                 </video>
+                <!-- Fallback animated GIF for farming theme -->
+                <img class="background-gif-fallback" src="https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif" alt="Farming background" style="display: none;">
                 <div class="dashboard-header">
                     <h2>🌾 Welcome to Kisan AI</h2>
                     <p>Your intelligent farming companion powered by advanced AI technology. Get personalized insights, crop recommendations, and market intelligence to maximize your harvest success.</p>
@@ -332,9 +334,9 @@
             <!-- Irrigation Section -->
             <section id="irrigation-section" class="irrigation-section" style="display: none;">
                 <!-- Background Video: Water flowing in irrigation system -->
-                <video class="background-video" autoplay muted loop playsinline>
+                <video class="background-video" autoplay muted loop playsinline preload="metadata">
+                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                     <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
-                    <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4" type="video/mp4">
                 </video>
                 <div class="section-header">
                     <button class="back-btn" data-back="dashboard">
