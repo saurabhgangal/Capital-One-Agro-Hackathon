@@ -1774,38 +1774,221 @@ body {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     border: 1px solid #e9ecef;
     border-radius: 12px;
-    padding: 16px;
-    margin: 12px 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.scheme-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), #4ade80);
 }
 
 .scheme-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     border-color: var(--primary-color);
 }
 
-.scheme-icon {
-    font-size: 24px;
+.scheme-card h5 {
     color: var(--primary-color);
-    flex-shrink: 0;
-    margin-top: 2px;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
-.scheme-content {
-    flex: 1;
-    color: #333;
+.scheme-card p {
+    margin: 8px 0;
+    color: #555;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
-.scheme-content strong {
+.scheme-card strong {
     color: var(--primary-color);
     font-weight: 600;
+}
+
+.scheme-card .benefits,
+.scheme-card .contact {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    border-left: 4px solid var(--primary-color);
+}
+
+.scheme-link {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-color), #4ade80);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    margin-top: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+}
+
+.scheme-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+    color: white;
+}
+
+/* Financial Options Cards */
+.financial-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.financial-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+}
+
+.financial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
+.financial-card h5 {
+    color: #3b82f6;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.financial-card p {
+    margin: 8px 0;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.financial-card strong {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.financial-card .features,
+.financial-card .contact {
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    border-left: 4px solid #3b82f6;
+}
+
+/* Thinking Animation */
+.thinking-message .thinking-animation {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.thinking-message .thinking-animation span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    animation: thinking 1.4s ease-in-out infinite both;
+}
+
+.thinking-message .thinking-animation span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.thinking-message .thinking-animation span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes thinking {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Schemes Display Section */
+#schemes-display {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+#schemes-display h4 {
+    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.schemes-list-container,
+.financial-options-container {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .scheme-card,
+    .financial-card {
+        padding: 16px;
+        margin: 12px 0;
+    }
+    
+    .scheme-card h5,
+    .financial-card h5 {
+        font-size: 16px;
+    }
+    
+    .scheme-card p,
+    .financial-card p {
+        font-size: 13px;
+    }
+    
+    .scheme-link {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
 }
 
 /* Enhanced message styling for schemes chat */
