@@ -674,15 +674,25 @@ body {
     background: var(--gradient-blue);
     color: var(--white);
     border: none;
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-4) var(--spacing-5);
     border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 1rem;
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .weather-details-btn::before {
@@ -701,8 +711,25 @@ body {
 }
 
 .weather-details-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl);
+    filter: brightness(1.1);
+}
+
+.weather-details-btn:active {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    filter: brightness(0.95);
+}
+
+.weather-details-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+.weather-details-btn:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 2px;
 }
 
 /* Special styling for Advanced Forecast button */
@@ -746,13 +773,30 @@ body {
 /* Mobile optimizations for buttons */
 @media (max-width: 768px) {
     .weather-details-btn {
-        padding: var(--spacing-4) var(--spacing-5);
-        font-size: 1rem;
-        min-height: 48px;
+        padding: var(--spacing-5) var(--spacing-6);
+        font-size: 1.1rem;
+        min-height: 56px;
+        border-radius: var(--radius-xl);
     }
     
     .weather-details-btn:hover {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+    }
+    
+    .weather-details-btn:active {
+        transform: translateY(0);
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .weather-details-btn:hover {
+        transform: none;
+    }
+    
+    .weather-details-btn:active {
+        transform: scale(0.98);
+        filter: brightness(0.9);
     }
 }
 

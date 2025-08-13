@@ -1830,8 +1830,23 @@ function goHome() {
 
 // Global function to show schemes chat (called from HTML onclick)
 function showSchemesChat() {
+    console.log('🔍 showSchemesChat called');
     if (window.kisanAI) {
+        console.log('✅ kisanAI found, navigating to schemes-chat');
         window.kisanAI.navigateToSection('schemes-chat');
+    } else {
+        console.error('❌ kisanAI not found');
+        // Fallback: try to find the section directly
+        const schemesSection = document.getElementById('schemes-chat-section');
+        if (schemesSection) {
+            console.log('🔍 Found schemes-chat-section, showing directly');
+            document.querySelectorAll('main > section').forEach(section => {
+                section.style.display = 'none';
+            });
+            schemesSection.style.display = 'block';
+        } else {
+            console.error('❌ schemes-chat-section not found');
+        }
     }
 }
 
