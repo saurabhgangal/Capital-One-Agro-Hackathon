@@ -34,6 +34,15 @@ class KisanAI {
         this.currentLanguage = 'en';
         this.updateUILanguage();
         this.updateLanguageToggleDisplay();
+        
+        // Debug: Check what's working
+        console.log('🔍 Debug: Checking app state...');
+        this.debugAppStatus();
+        
+        // Test basic navigation
+        setTimeout(() => {
+            this.testBasicNavigation();
+        }, 2000);
     }
 
     setupEventListeners() {
@@ -2187,6 +2196,35 @@ class KisanAI {
         console.log('🌍 Current language:', this.currentLanguage);
         
         console.log('🔍 App status debug complete');
+    }
+    
+    // Test basic navigation functionality
+    testBasicNavigation() {
+        console.log('🧪 Testing basic navigation...');
+        
+        try {
+            // Test 1: Check if we can navigate to dashboard
+            console.log('📍 Current section:', this.currentSection);
+            this.navigateToSection('dashboard');
+            console.log('✅ Dashboard navigation test passed');
+            
+            // Test 2: Check if we can navigate to market
+            this.navigateToSection('market');
+            console.log('✅ Market navigation test passed');
+            
+            // Test 3: Check if we can navigate to schemes
+            this.navigateToSection('schemes-chat');
+            console.log('✅ Schemes navigation test passed');
+            
+            // Test 4: Go back to dashboard
+            this.navigateToSection('dashboard');
+            console.log('✅ Return to dashboard test passed');
+            
+            console.log('🎉 All navigation tests passed!');
+            
+        } catch (error) {
+            console.error('❌ Navigation test failed:', error);
+        }
     }
     
 
