@@ -10,6 +10,7 @@ class KisanAI {
         this.recognition = null;
         this.isVoiceRecording = false;
         this.whatsappManager = null;
+        this.translationCache = new Map(); // Cache translations for performance
         
         this.init();
         this.initVoiceRecognition();
@@ -32,6 +33,7 @@ class KisanAI {
         // Set Hindi as default language and update all UI text
         this.currentLanguage = 'hi';
         this.updateUILanguage();
+        this.updateLanguageToggleDisplay();
     }
 
     setupEventListeners() {
@@ -84,11 +86,27 @@ class KisanAI {
             imageBtn.addEventListener('click', () => this.openImageUpload());
         }
 
-        // Language toggle
+        // Language toggle and dropdown
         const languageToggle = document.getElementById('language-toggle');
         if (languageToggle) {
-            languageToggle.addEventListener('click', () => this.toggleLanguage());
+            languageToggle.addEventListener('click', () => this.toggleLanguageDropdown());
         }
+        
+        // Language options
+        const languageOptions = document.querySelectorAll('.language-option');
+        languageOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const lang = option.dataset.lang;
+                this.changeLanguage(lang);
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.language-toggle') && !e.target.closest('.language-dropdown')) {
+                this.closeLanguageDropdown();
+            }
+        });
 
         // Disease detection
         const uploadArea = document.getElementById('upload-area');
@@ -128,11 +146,7 @@ class KisanAI {
             });
         }
 
-        // Profile button
-        const profileBtn = document.getElementById('profile-btn');
-        if (profileBtn) {
-            profileBtn.addEventListener('click', () => this.showProfile());
-        }
+
         
         // Dataset upload form
         const datasetUploadForm = document.getElementById('dataset-upload-form');
@@ -962,23 +976,186 @@ class KisanAI {
         `).join('');
     }
 
-    toggleLanguage() {
-        this.currentLanguage = this.currentLanguage === 'hi' ? 'en' : 'hi';
+    toggleLanguageDropdown() {
+        const dropdown = document.getElementById('language-dropdown');
+        if (dropdown) {
+            const isVisible = dropdown.style.display !== 'none';
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+    }
+    
+    closeLanguageDropdown() {
+        const dropdown = document.getElementById('language-dropdown');
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+    }
+    
+    async changeLanguage(targetLanguage) {
+        if (targetLanguage === this.currentLanguage) {
+            this.closeLanguageDropdown();
+            return;
+        }
         
+        try {
+            this.showNotification('🔄 Translating content...', 'info');
+            
+            // Update current language
+            this.currentLanguage = targetLanguage;
+            
+            // Update language toggle display
+            this.updateLanguageToggleDisplay();
+            
+            // Translate entire page content
+            await this.translatePageContent(targetLanguage);
+            
+            // Update voice recognition language
+            this.updateVoiceRecognitionLanguage();
+            
+            // Close dropdown
+            this.closeLanguageDropdown();
+            
+            this.showNotification('✅ Language changed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Language change error:', error);
+            this.showNotification('❌ Failed to change language', 'error');
+        }
+    }
+    
+    updateLanguageToggleDisplay() {
         const languageToggle = document.getElementById('language-toggle');
         if (languageToggle) {
             const span = languageToggle.querySelector('span');
             if (span) {
-                span.textContent = this.currentLanguage === 'hi' ? 'हिंदी' : 'English';
+                const languageNames = {
+                    'hi': 'हिंदी',
+                    'en': 'English',
+                    'pa': 'ਪੰਜਾਬੀ',
+                    'bn': 'বাংলা',
+                    'te': 'తెలుగు',
+                    'ta': 'தமிழ்',
+                    'mr': 'मराठी',
+                    'gu': 'ગુજરાતી',
+                    'kn': 'ಕನ್ನಡ',
+                    'ml': 'മലയാളം'
+                };
+                span.textContent = languageNames[this.currentLanguage] || 'हिंदी';
             }
         }
         
-        // Update UI language
-        this.updateUILanguage();
-        
-        // Update voice recognition language
+        // Update active state in dropdown
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.classList.remove('active');
+            if (option.dataset.lang === this.currentLanguage) {
+                option.classList.add('active');
+            }
+        });
+    }
+    
+    updateVoiceRecognitionLanguage() {
         if (this.recognition) {
-            this.recognition.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+            const languageMap = {
+                'hi': 'hi-IN',
+                'en': 'en-US',
+                'pa': 'pa-IN',
+                'bn': 'bn-IN',
+                'te': 'te-IN',
+                'ta': 'ta-IN',
+                'mr': 'mr-IN',
+                'gu': 'gu-IN',
+                'kn': 'kn-IN',
+                'ml': 'ml-IN'
+            };
+            this.recognition.lang = languageMap[this.currentLanguage] || 'hi-IN';
+        }
+    }
+    
+    async translatePageContent(targetLanguage) {
+        // Get all translatable text elements
+        const translatableElements = this.getTranslatableElements();
+        
+        // Translate each element
+        for (const element of translatableElements) {
+            const originalText = element.getAttribute('data-original-text') || element.textContent;
+            
+            // Cache the original text if not already cached
+            if (!element.getAttribute('data-original-text')) {
+                element.setAttribute('data-original-text', originalText);
+            }
+            
+            // Check cache first
+            const cacheKey = `${originalText}_${targetLanguage}`;
+            if (this.translationCache.has(cacheKey)) {
+                element.textContent = this.translationCache.get(cacheKey);
+                continue;
+            }
+            
+            // Translate using OpenAI
+            try {
+                const translatedText = await this.translateText(originalText, targetLanguage);
+                element.textContent = translatedText;
+                
+                // Cache the translation
+                this.translationCache.set(cacheKey, translatedText);
+                
+                // Small delay to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+            } catch (error) {
+                console.error('Translation error for element:', element, error);
+                // Keep original text if translation fails
+            }
+        }
+    }
+    
+    getTranslatableElements() {
+        // Get all text elements that should be translated
+        const selectors = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'span', 'button', 'label', 'div[class*="text"]',
+            '.dashboard-header h2', '.dashboard-header p',
+            '.quick-actions h3', '.action-btn span',
+            '.weather-widget h3', '.weather-info h4', '.weather-info .condition',
+            '.weather-alerts .alert-badge', '.weather-details-btn',
+            '.market-updates h3', '.schemes-widget h3',
+            '.nav-btn span', '.section-header h3'
+        ];
+        
+        const elements = [];
+        selectors.forEach(selector => {
+            const found = document.querySelectorAll(selector);
+            found.forEach(el => {
+                if (el.textContent.trim() && !el.hasAttribute('data-no-translate')) {
+                    elements.push(el);
+                }
+            });
+        });
+        
+        return elements;
+    }
+    
+    async translateText(text, targetLanguage) {
+        try {
+            const response = await fetch('/api/ai/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    targetLanguage: targetLanguage
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.translatedText;
+            } else {
+                throw new Error('Translation API failed');
+            }
+        } catch (error) {
+            console.error('Translation error:', error);
+            // Return original text if translation fails
+            return text;
         }
     }
 
@@ -1141,10 +1318,7 @@ class KisanAI {
         }
     }
 
-    showProfile() {
-        // Simple profile display - can be enhanced
-        this.showNotification('Profile feature coming soon!', 'info');
-    }
+
 
     showNotification(message, type = 'info') {
         // Create notification element

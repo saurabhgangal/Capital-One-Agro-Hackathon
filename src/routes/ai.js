@@ -9,6 +9,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Language mapping for OpenAI translation
+const languageMap = {
+  'hi': 'Hindi',
+  'en': 'English',
+  'pa': 'Punjabi',
+  'bn': 'Bengali',
+  'te': 'Telugu',
+  'ta': 'Tamil',
+  'mr': 'Marathi',
+  'gu': 'Gujarati',
+  'kn': 'Kannada',
+  'ml': 'Malayalam'
+};
+
 // Configure multer for image uploads with processing
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -542,5 +556,77 @@ function getLanguageInstructions(language) {
       return 'English - Respond in English. Provide clear and simple answers for farmers.';
   }
 }
+
+// OpenAI Translation API Endpoint
+router.post('/translate', async (req, res) => {
+  try {
+    const { text, targetLanguage } = req.body;
+    
+    if (!text || !targetLanguage) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Text and target language are required' 
+      });
+    }
+    
+    // Validate target language
+    if (!languageMap[targetLanguage]) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Unsupported target language' 
+      });
+    }
+    
+    const targetLangName = languageMap[targetLanguage];
+    
+    // Create translation prompt
+    const translationPrompt = `Translate the following text to ${targetLangName}. 
+    
+    IMPORTANT GUIDELINES:
+    - Maintain the original meaning and context
+    - Use natural, conversational language appropriate for farmers
+    - Preserve any technical terms but explain them if needed
+    - Keep the same tone and style
+    - If translating to Indian languages, use the appropriate script (Devanagari, Gurmukhi, etc.)
+    - Ensure the translation is culturally appropriate for Indian farmers
+    
+    TEXT TO TRANSLATE:
+    "${text}"
+    
+    TRANSLATION IN ${targetLangName}:`;
+    
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { 
+          role: "system", 
+          content: `You are a professional translator specializing in agricultural content for Indian farmers. Provide accurate, natural translations that maintain the original meaning while being culturally appropriate.` 
+        },
+        { role: "user", content: translationPrompt }
+      ],
+      max_tokens: 500,
+      temperature: 0.3
+    });
+    
+    const translatedText = completion.choices[0].message.content.trim();
+    
+    res.json({
+      success: true,
+      translatedText: translatedText,
+      originalText: text,
+      targetLanguage: targetLanguage,
+      targetLanguageName: targetLangName,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Translation Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Translation service unavailable',
+      details: error.message 
+    });
+  }
+});
 
 module.exports = router;
