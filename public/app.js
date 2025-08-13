@@ -137,6 +137,9 @@ class KisanAI {
         
         // Add market analysis event listeners
         this.setupMarketEventListeners();
+        
+        // Ensure navigation is always visible on mobile
+        this.ensureMobileNavigation();
 
         // Disease detection
         const uploadArea = document.getElementById('upload-area');
@@ -2055,6 +2058,54 @@ class KisanAI {
         setTimeout(() => {
             this.showNotification('✅ Market data refreshed!', 'success');
         }, 1000);
+    }
+    
+    // Ensure mobile navigation is always visible
+    ensureMobileNavigation() {
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) {
+            // Force navigation visibility
+            bottomNav.style.display = 'flex';
+            bottomNav.style.visibility = 'visible';
+            bottomNav.style.opacity = '1';
+            bottomNav.style.position = 'fixed';
+            bottomNav.style.bottom = '0';
+            bottomNav.style.left = '0';
+            bottomNav.style.right = '0';
+            bottomNav.style.zIndex = '9999';
+            
+            // Ensure all nav buttons are visible
+            const navBtns = bottomNav.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.style.display = 'flex';
+                btn.style.visibility = 'visible';
+                btn.style.opacity = '1';
+                
+                const span = btn.querySelector('span');
+                if (span) {
+                    span.style.display = 'block';
+                    span.style.visibility = 'visible';
+                    span.style.opacity = '1';
+                }
+            });
+            
+            console.log('✅ Mobile navigation visibility enforced');
+        }
+        
+        // Check navigation visibility every 2 seconds on mobile
+        if (window.innerWidth <= 768) {
+            setInterval(() => {
+                this.checkNavigationVisibility();
+            }, 2000);
+        }
+    }
+    
+    checkNavigationVisibility() {
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav && bottomNav.style.display === 'none') {
+            console.log('🔄 Navigation was hidden, restoring visibility...');
+            this.ensureMobileNavigation();
+        }
     }
 
     resetVoiceButtons() {
