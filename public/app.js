@@ -107,6 +107,30 @@ class KisanAI {
                 this.closeLanguageDropdown();
             }
         });
+        
+        // Add direct click handlers for dashboard buttons
+        const schemesButton = document.querySelector('.schemes-widget .weather-details-btn');
+        if (schemesButton) {
+            schemesButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔍 Schemes button clicked via event listener');
+                showSchemesChat();
+            });
+        }
+        
+        const weatherButton = document.querySelector('.weather-widget .weather-details-btn');
+        if (weatherButton) {
+            weatherButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔍 Weather button clicked via event listener');
+                if (window.kisanAI && typeof window.kisanAI.getWeatherIntelligence === 'function') {
+                    window.kisanAI.getWeatherIntelligence();
+                } else {
+                    // Fallback: direct redirect
+                    window.open('https://www.google.com/search?q=weather', '_blank');
+                }
+            });
+        }
 
         // Disease detection
         const uploadArea = document.getElementById('upload-area');
@@ -756,21 +780,21 @@ class KisanAI {
                     );
                     
                     if (whatsappResult.success) {
-                        whatsappStatusDiv.innerHTML = `
-                            <i class="fas fa-check-circle"></i>
-                            ✅ Plan sent to WhatsApp successfully!
-                        `;
-                    } else {
-                        whatsappStatusDiv.innerHTML = `
-                            <i class="fas fa-exclamation-triangle"></i>
-                            ⚠️ WhatsApp delivery failed: ${whatsappResult.message}
-                        `;
-                    }
+                    whatsappStatusDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        ✅ Plan sent to WhatsApp successfully!
+                    `;
                 } else {
                     whatsappStatusDiv.innerHTML = `
-                        <i class="fas fa-info-circle"></i>
-                        ℹ️ Phone number provided but WhatsApp not connected. Connect WhatsApp to receive plans.
+                        <i class="fas fa-exclamation-triangle"></i>
+                            ⚠️ WhatsApp delivery failed: ${whatsappResult.message}
                     `;
+                }
+                } else {
+                whatsappStatusDiv.innerHTML = `
+                    <i class="fas fa-info-circle"></i>
+                        ℹ️ Phone number provided but WhatsApp not connected. Connect WhatsApp to receive plans.
+                `;
                 }
             } else {
                 whatsappStatusDiv.innerHTML = `
@@ -1400,15 +1424,15 @@ class KisanAI {
 
     async getWeatherIntelligence() {
         try {
-            // Redirect to a third-party weather forecasting website
-            const weatherUrl = 'https://www.accuweather.com/en/in/delhi/202396/weather-forecast/202396';
+            // Redirect to Google Weather
+            const weatherUrl = 'https://www.google.com/search?q=weather';
             
             // Open in new tab
             window.open(weatherUrl, '_blank');
             
             const message = this.currentLanguage === 'hi' 
-                ? '🌤️ विस्तृत मौसम पूर्वानुमान नई टैब में खुल रहा है...' 
-                : '🌤️ Opening detailed weather forecast in new tab...';
+                ? '🌤️ Google मौसम नई टैब में खुल रहा है...' 
+                : '🌤️ Opening Google Weather in new tab...';
             
             this.showNotification(message, 'success');
         } catch (error) {
@@ -1831,24 +1855,51 @@ function goHome() {
 // Global function to show schemes chat (called from HTML onclick)
 function showSchemesChat() {
     console.log('🔍 showSchemesChat called');
-    if (window.kisanAI) {
+    
+    // Method 1: Try to use kisanAI if available
+    if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
         console.log('✅ kisanAI found, navigating to schemes-chat');
         window.kisanAI.navigateToSection('schemes-chat');
-    } else {
-        console.error('❌ kisanAI not found');
-        // Fallback: try to find the section directly
-        const schemesSection = document.getElementById('schemes-chat-section');
-        if (schemesSection) {
-            console.log('🔍 Found schemes-chat-section, showing directly');
-            document.querySelectorAll('main > section').forEach(section => {
-                section.style.display = 'none';
-            });
-            schemesSection.style.display = 'block';
-        } else {
-            console.error('❌ schemes-chat-section not found');
+        return;
+    }
+    
+    // Method 2: Direct DOM manipulation
+    console.log('🔍 Using direct DOM navigation');
+    const schemesSection = document.getElementById('schemes-chat-section');
+    if (schemesSection) {
+        console.log('✅ Found schemes-chat-section, showing directly');
+        
+        // Hide all sections first
+        document.querySelectorAll('main > section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show schemes section
+        schemesSection.style.display = 'block';
+        
+        // Update navigation buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const schemesNavBtn = document.querySelector('[data-section="schemes-chat"]');
+        if (schemesNavBtn) {
+            schemesNavBtn.classList.add('active');
         }
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+        
+        console.log('✅ Successfully navigated to schemes-chat');
+    } else {
+        console.error('❌ schemes-chat-section not found');
+        // Fallback: show error message
+        alert('Schemes section not found. Please refresh the page.');
     }
 }
+
+// Make function globally accessible
+window.showSchemesChat = showSchemesChat;
 
 // Global function to get WhatsApp QR code - SUPER SIMPLE
 async function getWhatsAppQR() {
