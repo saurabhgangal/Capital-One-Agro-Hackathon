@@ -1820,18 +1820,97 @@ class KisanAI {
         }
     }
     
-    processSchemesMessage(message) {
-        // Simple response for now - you can integrate with AI later
-        const responses = [
-            'Thank you for your message. I\'m here to help with government schemes.',
-            'I understand your query. Let me provide you with relevant information.',
-            'Great question! Here are some schemes that might help you.',
-            'I\'ll help you find the right government scheme for your needs.'
-        ];
+    // Initialize schemes chat functionality
+    initSchemesChat() {
+        console.log('🏛️ Initializing schemes chat...');
         
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        try {
+            // Clear any existing messages
+            const schemesChatMessages = document.getElementById('schemes-chat-messages');
+            if (schemesChatMessages) {
+                schemesChatMessages.innerHTML = `
+                    <div class="message ai-message">
+                        <div class="message-avatar">🏛️</div>
+                        <div class="message-content">
+                            <p>नमस्ते! मैं आपको सरकारी योजनाओं और वित्तीय सहायता के बारे में मदद करूंगा। कृपया मुझे बताएं:</p>
+                            <ul>
+                                <li>आपकी उम्र क्या है?</li>
+                                <li>आप कहाँ रहते हैं?</li>
+                                <li>आपके पास कितनी जमीन है?</li>
+                                <li>क्या आपको कर्ज की जरूरत है?</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Setup event listeners for schemes chat
+            const schemesChatInput = document.getElementById('schemes-chat-input');
+            const schemesSendBtn = document.getElementById('schemes-send-btn');
+            const schemesVoiceBtn = document.getElementById('schemes-voice-btn');
+            const schemesVoiceInputBtn = document.getElementById('schemes-voice-input-btn');
+            
+            if (schemesChatInput && schemesSendBtn) {
+                schemesSendBtn.addEventListener('click', () => this.sendSchemesMessage());
+                schemesChatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendSchemesMessage();
+                });
+            }
+            
+            if (schemesVoiceBtn) {
+                schemesVoiceBtn.addEventListener('click', () => this.toggleSchemesVoiceInterface());
+            }
+            
+            if (schemesVoiceInputBtn) {
+                schemesVoiceInputBtn.addEventListener('click', () => this.startSchemesVoiceRecording());
+            }
+            
+            console.log('✅ Schemes chat initialized successfully');
+            
+        } catch (error) {
+            console.error('❌ Error initializing schemes chat:', error);
+        }
+    }
+    
+    processSchemesMessage(message) {
+        console.log('🏛️ Processing schemes message:', message);
+        
+        // Analyze the message and provide relevant scheme information
+        const lowerMessage = message.toLowerCase();
+        
+        let response = '';
+        
+        if (lowerMessage.includes('umr') || lowerMessage.includes('age') || lowerMessage.includes('उम्र')) {
+            response = 'आपकी उम्र के आधार पर, यहाँ कुछ योजनाएं हैं:\n\n' +
+                      '• **PM-KISAN**: 18+ वर्ष के किसानों के लिए\n' +
+                      '• **PM-Fasal Bima Yojana**: सभी उम्र के किसानों के लिए\n' +
+                      '• **Kisan Credit Card**: 18-75 वर्ष के किसानों के लिए';
+        } else if (lowerMessage.includes('jameen') || lowerMessage.includes('land') || lowerMessage.includes('जमीन')) {
+            response = 'जमीन के आधार पर योजनाएं:\n\n' +
+                      '• **PM-KISAN**: 2 हेक्टेयर तक की जमीन पर ₹6000/वर्ष\n' +
+                      '• **PM-Fasal Bima**: सभी जमीन के लिए बीमा\n' +
+                      '• **Soil Health Card**: मिट्टी की जांच के लिए';
+        } else if (lowerMessage.includes('kharz') || lowerMessage.includes('loan') || lowerMessage.includes('कर्ज')) {
+            response = 'कर्ज के लिए योजनाएं:\n\n' +
+                      '• **Kisan Credit Card**: 3 लाख तक का कर्ज\n' +
+                      '• **PM-KISAN**: नियमित आय सहायता\n' +
+                      '• **Interest Subvention**: कर्ज पर ब्याज में छूट';
+        } else if (lowerMessage.includes('kahan') || lowerMessage.includes('where') || lowerMessage.includes('कहाँ')) {
+            response = 'आपके क्षेत्र के लिए विशेष योजनाएं:\n\n' +
+                      '• **PM-KISAN**: पूरे भारत में\n' +
+                      '• **State Specific Schemes**: आपके राज्य के अनुसार\n' +
+                      '• **Regional Subsidies**: क्षेत्रीय आधार पर';
+        } else {
+            response = 'आपकी जानकारी के आधार पर, यहाँ कुछ महत्वपूर्ण योजनाएं हैं:\n\n' +
+                      '• **PM-KISAN**: ₹6000/वर्ष की सहायता\n' +
+                      '• **PM-Fasal Bima Yojana**: फसल बीमा\n' +
+                      '• **Kisan Credit Card**: आसान कर्ज\n' +
+                      '• **Soil Health Card**: मिट्टी की जांच\n\n' +
+                      'कृपया अपनी विशिष्ट जरूरत बताएं ताकि मैं आपको सटीक जानकारी दे सकूं।';
+        }
+        
         setTimeout(() => {
-            this.addSchemesMessage('ai', randomResponse);
+            this.addSchemesMessage('ai', response);
         }, 1000);
     }
     
