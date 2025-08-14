@@ -2882,12 +2882,61 @@ document.head.appendChild(notificationStyles);
 
 document.addEventListener('DOMContentLoaded', () => {
     window.kisanAI = new KisanAI();
+    
+    // Add logo click event listener as backup
+    const logoSection = document.querySelector('.logo-section');
+    if (logoSection) {
+        logoSection.addEventListener('click', (e) => {
+            console.log('🏠 Logo clicked via event listener');
+            e.preventDefault();
+            goHome();
+        });
+    }
 });
 
 // Global function to go home (called from HTML onclick)
 function goHome() {
-    if (window.kisanAI) {
-        window.kisanAI.goHome();
+    console.log('🏠 goHome() called');
+    
+    // Method 1: Try to use kisanAI if available
+    if (window.kisanAI && typeof window.kisanAI.navigateToSection === 'function') {
+        console.log('✅ kisanAI found, navigating to dashboard');
+        window.kisanAI.navigateToSection('dashboard');
+        return;
+    }
+    
+    // Method 2: Direct DOM navigation as fallback
+    console.log('🔍 Using direct DOM navigation to dashboard');
+    const dashboardSection = document.getElementById('dashboard-section');
+    if (dashboardSection) {
+        console.log('✅ Found dashboard-section, showing directly');
+        
+        // Hide all sections first
+        document.querySelectorAll('main > section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show dashboard section
+        dashboardSection.style.display = 'block';
+        
+        // Update navigation buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const dashboardNavBtn = document.querySelector('[data-section="dashboard"]');
+        if (dashboardNavBtn) {
+            dashboardNavBtn.classList.add('active');
+        }
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        console.log('✅ Successfully navigated to dashboard');
+    } else {
+        console.error('❌ dashboard-section not found');
+        // Fallback: show error message
+        alert('Dashboard section not found. Please refresh the page.');
     }
 }
 
