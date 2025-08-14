@@ -633,65 +633,122 @@ class KisanAI {
             return;
         }
         
-        // Show loading notification
-        this.showNotification('🔄 Analyzing market data... Please wait!', 'info');
+        this.showNotification('🔄 Analyzing real-time market data from ENAM...', 'info');
         
         try {
-            const response = await fetch('/api/market/price-analysis', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    crop: crop,
-                    location: location,
-                    season: 'current',
-                    quantity: '1 quintal',
-                    quality: 'good',
-                    marketType: 'mandi'
-                })
-            });
+            // Try to get ENAM market data first
+            const enamData = await this.getENAMMarketData(crop, location);
             
-            const data = await response.json();
-            
-            if (data.success && data.marketAnalysis) {
-                this.displayMarketAnalysis(data.marketAnalysis);
+            if (enamData) {
+                // Use real ENAM data
+                this.displayENAMMarketAnalysis(enamData, crop, location);
             } else {
-                throw new Error(data.error || 'No market data received');
+                // Fallback to existing analysis
+                this.performFallbackMarketAnalysis(crop, location);
             }
             
         } catch (error) {
             console.error('Market analysis error:', error);
-            this.showNotification('❌ Failed to analyze market. Please try again later.', 'error');
+            this.showNotification('❌ Market analysis failed. Please try again later.', 'error');
         }
     }
-
-    displayMarketAnalysis(analysis) {
+    
+    // Display ENAM market analysis
+    displayENAMMarketAnalysis(enamData, crop, location) {
         const marketAnalysis = document.getElementById('market-analysis');
         const marketAnalysisContent = document.getElementById('market-analysis-content');
         
         if (marketAnalysis && marketAnalysisContent) {
-            // Enhanced display with better formatting
-            const formattedAnalysis = analysis
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br>');
-            
-            marketAnalysisContent.innerHTML = `
-                <div class="analysis-text">
-                    <p>${formattedAnalysis}</p>
+            const analysisHTML = `
+                <div class="enam-analysis">
+                    <div class="analysis-header">
+                        <h4>📊 ENAM Real-Time Market Analysis</h4>
+                        <p><strong>Crop:</strong> ${crop} | <strong>Location:</strong> ${location}</p>
+                        <p><strong>Last Updated:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+                    
+                    <div class="market-summary">
+                        <div class="summary-card">
+                            <h5>Current Price</h5>
+                            <div class="price-display">₹${enamData.currentPrice || 'N/A'}/qtl</div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Market Trend</h5>
+                            <div class="trend-display ${enamData.trend === 'up' ? 'up' : 'down'}">
+                                ${enamData.trend === 'up' ? '↗️' : '↘️'} ${enamData.trendPercentage || 'N/A'}%
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Supply Status</h5>
+                            <div class="supply-display">${enamData.supplyStatus || 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="market-details">
+                        <h5>Market Details</h5>
+                        <p><strong>Mandi:</strong> ${enamData.mandiName || 'N/A'}</p>
+                        <p><strong>Quality Grade:</strong> ${enamData.qualityGrade || 'N/A'}</p>
+                        <p><strong>Arrival Quantity:</strong> ${enamData.arrivalQuantity || 'N/A'} qtl</p>
+                        <p><strong>Previous Price:</strong> ₹${enamData.previousPrice || 'N/A'}/qtl</p>
+                    </div>
+                    
+                    <div class="market-recommendations">
+                        <h5>🌾 Market Recommendations</h5>
+                        <p>${this.generateMarketRecommendations(enamData)}</p>
+                    </div>
                 </div>
             `;
             
+            marketAnalysisContent.innerHTML = analysisHTML;
             marketAnalysis.style.display = 'block';
-            marketAnalysis.style.animation = 'slideInUp 0.6s ease-out';
-            
-            // Scroll to result
             marketAnalysis.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Add success notification
-            this.showNotification('📊 Market analysis complete! Check the detailed insights below.', 'success');
+            this.showNotification('📊 ENAM market analysis complete!', 'success');
         }
+    }
+    
+    // Generate market recommendations based on ENAM data
+    generateMarketRecommendations(enamData) {
+        const currentPrice = enamData.currentPrice;
+        const previousPrice = enamData.previousPrice;
+        const trend = enamData.trend;
+        const supplyStatus = enamData.supplyStatus;
+        
+        let recommendations = [];
+        
+        if (currentPrice && previousPrice) {
+            const priceChange = ((currentPrice - previousPrice) / previousPrice) * 100;
+            
+            if (priceChange > 5) {
+                recommendations.push('Prices are rising - Consider selling soon for better profits');
+            } else if (priceChange < -5) {
+                recommendations.push('Prices are falling - Hold stock if possible, prices may recover');
+            } else {
+                recommendations.push('Prices are stable - Good time for regular trading');
+            }
+        }
+        
+        if (supplyStatus && supplyStatus.toLowerCase().includes('low')) {
+            recommendations.push('Low supply in market - Prices likely to increase');
+        } else if (supplyStatus && supplyStatus.toLowerCase().includes('high')) {
+            recommendations.push('High supply in market - Prices may decrease');
+        }
+        
+        if (trend === 'up') {
+            recommendations.push('Upward trend detected - Monitor for peak selling opportunity');
+        } else if (trend === 'down') {
+            recommendations.push('Downward trend detected - Consider waiting for price recovery');
+        }
+        
+        return recommendations.length > 0 ? recommendations.join('. ') : 'Market conditions are normal. Continue with regular trading patterns.';
+    }
+    
+    // Fallback market analysis (existing method)
+    performFallbackMarketAnalysis(crop, location) {
+        this.showNotification('📊 Using enhanced market analysis with dynamic data...', 'info');
+        
+        // Call existing analysis method
+        this.analyzeMarketWithFallback(crop, location);
     }
 
 
@@ -1459,23 +1516,32 @@ class KisanAI {
 
     async getWeatherIntelligence() {
         try {
-            // Redirect to Google Weather
-            const weatherUrl = 'https://www.google.com/search?q=weather';
+            const locationInput = document.getElementById('ai-location');
+            const location = locationInput ? locationInput.value.trim() : 'India';
             
-            // Open in new tab
-            window.open(weatherUrl, '_blank');
+            if (!location) {
+                this.showNotification('⚠️ Please enter your location for weather analysis!', 'warning');
+                return;
+            }
             
-            const message = this.currentLanguage === 'hi' 
-                ? '🌤️ Google मौसम नई टैब में खुल रहा है...' 
-                : '🌤️ Opening Google Weather in new tab...';
+            this.showNotification('🌤️ Fetching real-time weather data from IMD...', 'info');
             
-            this.showNotification(message, 'success');
+            // Try to get IMD weather data first
+            const imdData = await this.getIMDWeatherData(location);
+            
+            if (imdData) {
+                // Use real IMD data
+                this.displayIMDWeatherAnalysis(imdData, location);
+            } else {
+                // Fallback to Google Weather
+                const weatherUrl = `https://www.google.com/search?q=weather+${encodeURIComponent(location)}`;
+                window.open(weatherUrl, '_blank');
+                this.showNotification('🌤️ Weather data opened in new tab!', 'success');
+            }
+            
         } catch (error) {
-            console.error('Weather redirect error:', error);
-            const errorMsg = this.currentLanguage === 'hi' 
-                ? 'मौसम पूर्वानुमान खोलने में विफल' 
-                : 'Failed to open weather forecast';
-            this.showNotification(errorMsg, 'error');
+            console.error('Weather analysis error:', error);
+            this.showNotification('❌ Weather analysis failed. Please try again.', 'error');
         }
     }
 
@@ -3020,6 +3086,335 @@ class KisanAI {
         `;
         
         document.body.appendChild(modal);
+    }
+
+    // Government API Integration Methods
+    async getIMDWeatherData(location) {
+        try {
+            console.log('🌤️ Fetching IMD weather data for:', location);
+            
+            // IMD MAUSAM API endpoint (you'll need to get actual API key)
+            const response = await fetch('/api/weather/imd', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    location: location,
+                    apiType: 'imd'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ IMD weather data received:', data);
+                    return data.weatherData;
+                }
+            }
+            
+            throw new Error('Failed to fetch IMD weather data');
+        } catch (error) {
+            console.warn('IMD API failed, using fallback:', error);
+            return null;
+        }
+    }
+    
+    async getENAMMarketData(crop, location) {
+        try {
+            console.log('📊 Fetching ENAM market data for:', crop, 'in', location);
+            
+            // ENAM AGRICOOP API endpoint
+            const response = await fetch('/api/market/enam', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    crop: crop,
+                    location: location,
+                    apiType: 'enam'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ ENAM market data received:', data);
+                    return data.marketData;
+                }
+            }
+            
+            throw new Error('Failed to fetch ENAM market data');
+        } catch (error) {
+            console.warn('ENAM API failed, using fallback:', error);
+            return null;
+        }
+    }
+    
+    async getMySchemeData(query, userProfile) {
+        try {
+            console.log('🏛️ Fetching MyScheme data for:', query);
+            
+            // MyScheme API endpoint
+            const response = await fetch('/api/schemes/myscheme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: query,
+                    userProfile: userProfile,
+                    apiType: 'myscheme'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ MyScheme data received:', data);
+                    return data.schemeData;
+                }
+            }
+            
+            throw new Error('Failed to fetch MyScheme data');
+        } catch (error) {
+            console.warn('MyScheme API failed, using fallback:', error);
+            return null;
+        }
+    }
+    
+    // Enhanced weather analysis with IMD data
+    async getWeatherIntelligence() {
+        try {
+            const locationInput = document.getElementById('ai-location');
+            const location = locationInput ? locationInput.value.trim() : 'India';
+            
+            if (!location) {
+                this.showNotification('⚠️ Please enter your location for weather analysis!', 'warning');
+                return;
+            }
+            
+            this.showNotification('🌤️ Fetching real-time weather data from IMD...', 'info');
+            
+            // Try to get IMD weather data first
+            const imdData = await this.getIMDWeatherData(location);
+            
+            if (imdData) {
+                // Use real IMD data
+                this.displayIMDWeatherAnalysis(imdData, location);
+            } else {
+                // Fallback to Google Weather
+                const weatherUrl = `https://www.google.com/search?q=weather+${encodeURIComponent(location)}`;
+                window.open(weatherUrl, '_blank');
+                this.showNotification('🌤️ Weather data opened in new tab!', 'success');
+            }
+            
+        } catch (error) {
+            console.error('Weather analysis error:', error);
+            this.showNotification('❌ Weather analysis failed. Please try again.', 'error');
+        }
+    }
+    
+    // Display IMD weather analysis
+    displayIMDWeatherAnalysis(weatherData, location) {
+        const modal = document.createElement('div');
+        modal.className = 'weather-modal';
+        modal.innerHTML = `
+            <div class="weather-modal-content">
+                <div class="weather-modal-header">
+                    <h3>🌤️ IMD Weather Analysis - ${location}</h3>
+                    <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                </div>
+                <div class="weather-modal-body">
+                    <div class="weather-current">
+                        <h4>Current Conditions</h4>
+                        <p><strong>Temperature:</strong> ${weatherData.temperature || 'N/A'}°C</p>
+                        <p><strong>Humidity:</strong> ${weatherData.humidity || 'N/A'}%</p>
+                        <p><strong>Wind Speed:</strong> ${weatherData.windSpeed || 'N/A'} km/h</p>
+                        <p><strong>Conditions:</strong> ${weatherData.conditions || 'N/A'}</p>
+                    </div>
+                    <div class="weather-forecast">
+                        <h4>7-Day Forecast</h4>
+                        <div class="forecast-grid">
+                            ${this.generateForecastHTML(weatherData.forecast)}
+                        </div>
+                    </div>
+                    <div class="weather-recommendations">
+                        <h4>🌾 Farming Recommendations</h4>
+                        <p>${this.generateWeatherRecommendations(weatherData)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        this.showNotification('🌤️ IMD weather analysis complete!', 'success');
+    }
+    
+    // Generate forecast HTML
+    generateForecastHTML(forecast) {
+        if (!forecast || !Array.isArray(forecast)) {
+            return '<p>Forecast data not available</p>';
+        }
+        
+        return forecast.map(day => `
+            <div class="forecast-day">
+                <div class="forecast-date">${day.date || 'N/A'}</div>
+                <div class="forecast-temp">${day.temperature || 'N/A'}°C</div>
+                <div class="forecast-condition">${day.condition || 'N/A'}</div>
+            </div>
+        `).join('');
+    }
+    
+    // Generate weather-based farming recommendations
+    generateWeatherRecommendations(weatherData) {
+        const temp = weatherData.temperature;
+        const humidity = weatherData.humidity;
+        const conditions = weatherData.conditions;
+        
+        let recommendations = [];
+        
+        if (temp > 35) {
+            recommendations.push('High temperature - Consider early morning or evening irrigation');
+        } else if (temp < 15) {
+            recommendations.push('Low temperature - Protect sensitive crops from cold');
+        }
+        
+        if (humidity > 80) {
+            recommendations.push('High humidity - Watch for fungal diseases');
+        } else if (humidity < 40) {
+            recommendations.push('Low humidity - Increase irrigation frequency');
+        }
+        
+        if (conditions && conditions.toLowerCase().includes('rain')) {
+            recommendations.push('Rain expected - Delay irrigation, prepare for drainage');
+        }
+        
+        return recommendations.length > 0 ? recommendations.join('. ') : 'Weather conditions are favorable for farming activities.';
+    }
+    
+    // Enhanced market analysis with ENAM data
+    async analyzeMarket() {
+        const cropSelect = document.getElementById('crop-select');
+        const locationInput = document.getElementById('location-input');
+        
+        const crop = cropSelect.value;
+        const location = locationInput.value.trim();
+        
+        if (!crop || !location) {
+            this.showNotification('⚠️ Please select a crop and enter your location to get market insights!', 'warning');
+            return;
+        }
+        
+        this.showNotification('🔄 Analyzing real-time market data from ENAM...', 'info');
+        
+        try {
+            // Try to get ENAM market data first
+            const enamData = await this.getENAMMarketData(crop, location);
+            
+            if (enamData) {
+                // Use real ENAM data
+                this.displayENAMMarketAnalysis(enamData, crop, location);
+            } else {
+                // Fallback to existing analysis
+                this.performFallbackMarketAnalysis(crop, location);
+            }
+            
+        } catch (error) {
+            console.error('Market analysis error:', error);
+            this.showNotification('❌ Market analysis failed. Please try again later.', 'error');
+        }
+    }
+    
+    // Display ENAM market analysis
+    displayENAMMarketAnalysis(enamData, crop, location) {
+        const marketAnalysis = document.getElementById('market-analysis');
+        const marketAnalysisContent = document.getElementById('market-analysis-content');
+        
+        if (marketAnalysis && marketAnalysisContent) {
+            const analysisHTML = `
+                <div class="enam-analysis">
+                    <div class="analysis-header">
+                        <h4>📊 ENAM Real-Time Market Analysis</h4>
+                        <p><strong>Crop:</strong> ${crop} | <strong>Location:</strong> ${location}</p>
+                        <p><strong>Last Updated:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+                    
+                    <div class="market-summary">
+                        <div class="summary-card">
+                            <h5>Current Price</h5>
+                            <div class="price-display">₹${enamData.currentPrice || 'N/A'}/qtl</div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Market Trend</h5>
+                            <div class="trend-display ${enamData.trend === 'up' ? 'up' : 'down'}">
+                                ${enamData.trend === 'up' ? '↗️' : '↘️'} ${enamData.trendPercentage || 'N/A'}%
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Supply Status</h5>
+                            <div class="supply-display">${enamData.supplyStatus || 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="market-details">
+                        <h5>Market Details</h5>
+                        <p><strong>Mandi:</strong> ${enamData.mandiName || 'N/A'}</p>
+                        <p><strong>Quality Grade:</strong> ${enamData.qualityGrade || 'N/A'}</p>
+                        <p><strong>Arrival Quantity:</strong> ${enamData.arrivalQuantity || 'N/A'} qtl</p>
+                        <p><strong>Previous Price:</strong> ₹${enamData.previousPrice || 'N/A'}/qtl</p>
+                    </div>
+                    
+                    <div class="market-recommendations">
+                        <h5>🌾 Market Recommendations</h5>
+                        <p>${this.generateMarketRecommendations(enamData)}</p>
+                    </div>
+                </div>
+            `;
+            
+            marketAnalysisContent.innerHTML = analysisHTML;
+            marketAnalysis.style.display = 'block';
+            marketAnalysis.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            this.showNotification('📊 ENAM market analysis complete!', 'success');
+        }
+    }
+    
+    // Generate market recommendations based on ENAM data
+    generateMarketRecommendations(enamData) {
+        const currentPrice = enamData.currentPrice;
+        const previousPrice = enamData.previousPrice;
+        const trend = enamData.trend;
+        const supplyStatus = enamData.supplyStatus;
+        
+        let recommendations = [];
+        
+        if (currentPrice && previousPrice) {
+            const priceChange = ((currentPrice - previousPrice) / previousPrice) * 100;
+            
+            if (priceChange > 5) {
+                recommendations.push('Prices are rising - Consider selling soon for better profits');
+            } else if (priceChange < -5) {
+                recommendations.push('Prices are falling - Hold stock if possible, prices may recover');
+            } else {
+                recommendations.push('Prices are stable - Good time for regular trading');
+            }
+        }
+        
+        if (supplyStatus && supplyStatus.toLowerCase().includes('low')) {
+            recommendations.push('Low supply in market - Prices likely to increase');
+        } else if (supplyStatus && supplyStatus.toLowerCase().includes('high')) {
+            recommendations.push('High supply in market - Prices may decrease');
+        }
+        
+        if (trend === 'up') {
+            recommendations.push('Upward trend detected - Monitor for peak selling opportunity');
+        } else if (trend === 'down') {
+            recommendations.push('Downward trend detected - Consider waiting for price recovery');
+        }
+        
+        return recommendations.length > 0 ? recommendations.join('. ') : 'Market conditions are normal. Continue with regular trading patterns.';
     }
 }
 
