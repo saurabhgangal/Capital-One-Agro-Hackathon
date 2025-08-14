@@ -4665,70 +4665,89 @@ body {
 
 /* Location Selector Styles */
 .location-selector {
-    margin-bottom: var(--spacing-3);
-    padding: var(--spacing-3);
-    background: var(--background);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.location-selector:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .location-selector label {
     display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: var(--spacing-2);
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .location-input-group {
     display: flex;
-    gap: var(--spacing-2);
+    gap: 8px;
     align-items: center;
 }
 
 .location-input {
     flex: 1;
-    padding: var(--spacing-2) var(--spacing-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    background: var(--surface);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
     color: var(--text-primary);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .location-input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(76, 175, 80, 0.3);
+    transform: translateY(-1px);
 }
 
 .location-input::placeholder {
-    color: var(--text-secondary);
+    color: rgba(0, 0, 0, 0.5);
+    font-style: italic;
 }
 
 .location-btn {
-    padding: var(--spacing-2) var(--spacing-3);
-    background: var(--gradient-accent);
-    color: white;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 0.9rem;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    min-width: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 40px;
 }
 
 .location-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .location-btn:active {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.location-btn i {
+    font-size: 16px;
 }
 
 /* Update weather widget to accommodate location selector */
@@ -4744,20 +4763,42 @@ body {
 /* Responsive design for location selector */
 @media (max-width: 768px) {
     .location-selector {
-        padding: var(--spacing-2);
+        padding: 12px;
+        margin-bottom: 16px;
     }
     
     .location-input-group {
-        flex-direction: column;
-        gap: var(--spacing-2);
+        gap: 6px;
     }
     
     .location-input {
-        width: 100%;
+        padding: 10px 14px;
+        font-size: 13px;
     }
     
     .location-btn {
-        width: 100%;
-        justify-content: center;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .location-selector {
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+    }
+    
+    .location-input {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+    
+    .location-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        min-width: 40px;
     }
 }

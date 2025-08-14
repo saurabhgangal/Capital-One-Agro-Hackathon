@@ -655,7 +655,7 @@ class KisanAI {
             this.showNotification('❌ Market analysis failed. Please try again later.', 'error');
         }
     }
-    
+
     // Display ENAM market analysis
     displayENAMMarketAnalysis(enamData, crop, location) {
         const marketAnalysis = document.getElementById('market-analysis');
