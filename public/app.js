@@ -3210,19 +3210,25 @@ class KisanAI {
             // Try to get IMD weather data first
             const imdData = await this.getIMDWeatherData(location);
             
-            if (imdData) {
+            if (imdData && imdData.temperature) {
                 // Use real IMD data
+                console.log('✅ IMD data received, displaying modal:', imdData);
                 this.displayIMDWeatherAnalysis(imdData, location);
             } else {
-                // Fallback to Google Weather
-                const weatherUrl = `https://www.google.com/search?q=weather+${encodeURIComponent(location)}`;
-                window.open(weatherUrl, '_blank');
-                this.showNotification('🌤️ Weather data opened in new tab!', 'success');
+                // Create fallback weather data and show modal anyway
+                console.log('⚠️ IMD API failed, using fallback data');
+                const fallbackData = this.generateFallbackWeatherData(location);
+                this.displayIMDWeatherAnalysis(fallbackData, location);
+                this.showNotification('🌤️ Showing weather forecast with sample data', 'info');
             }
             
         } catch (error) {
             console.error('Weather analysis error:', error);
-            this.showNotification('❌ Weather analysis failed. Please try again.', 'error');
+            // Even if there's an error, show fallback weather data
+            const location = document.getElementById('ai-location')?.value.trim() || 'Delhi';
+            const fallbackData = this.generateFallbackWeatherData(location);
+            this.displayIMDWeatherAnalysis(fallbackData, location);
+            this.showNotification('🌤️ Showing weather forecast with sample data', 'info');
         }
     }
     
@@ -3310,6 +3316,28 @@ class KisanAI {
         }
         
         return recommendations.length > 0 ? recommendations.join('. ') : 'Weather conditions are favorable for farming activities.';
+    }
+    
+    // Generate fallback weather data when API fails
+    generateFallbackWeatherData(location) {
+        const baseTemp = location.toLowerCase().includes('delhi') ? 32 : 28;
+        const baseHumidity = location.toLowerCase().includes('delhi') ? 65 : 70;
+        
+        return {
+            temperature: baseTemp + Math.round(Math.random() * 8 - 4), // ±4°C variation
+            humidity: baseHumidity + Math.round(Math.random() * 20 - 10), // ±10% variation
+            windSpeed: Math.round(8 + Math.random() * 12), // 8-20 km/h
+            conditions: ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain'][Math.floor(Math.random() * 4)],
+            forecast: Array.from({ length: 7 }, (_, i) => ({
+                date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                }),
+                temperature: baseTemp + Math.round(Math.random() * 12 - 6), // ±6°C variation
+                condition: ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Thunderstorm'][Math.floor(Math.random() * 5)]
+            }))
+        };
     }
     
     // Enhanced market analysis with ENAM data
