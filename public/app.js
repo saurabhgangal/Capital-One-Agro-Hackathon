@@ -2256,47 +2256,159 @@ class KisanAI {
             // Generate dynamic data based on selection
             const cropData = this.generateCropData(crop, region, regionName);
             
-            if (cropElement) cropElement.textContent = cropData.crop;
-            if (priceElement) priceElement.textContent = `₹${cropData.price}/qtl`;
+            if (cropElement) {
+                cropElement.textContent = cropData.crop;
+                // Add indicator if it's the best crop for the region
+                if (cropData.isBestForRegion) {
+                    cropElement.innerHTML = `${cropData.crop} <span class="best-crop-indicator">⭐</span>`;
+                }
+            }
+            
+            if (priceElement) {
+                priceElement.textContent = `₹${cropData.price}/qtl`;
+                // Add color coding for price ranges
+                if (cropData.price > 5000) {
+                    priceElement.className = 'price high-price';
+                } else if (cropData.price > 2000) {
+                    priceElement.className = 'price medium-price';
+                } else {
+                    priceElement.className = 'price low-price';
+                }
+            }
+            
             if (trendElement) {
-                trendElement.textContent = cropData.trend > 0 ? `+${cropData.trend}%` : `${cropData.trend}%`;
+                const trendText = cropData.trend > 0 ? `+${cropData.trend}%` : `${cropData.trend}%`;
+                trendElement.textContent = trendText;
                 trendElement.className = `trend ${cropData.trend > 0 ? 'up' : 'down'}`;
+                
+                // Add trend strength indicator
+                const trendStrength = Math.abs(cropData.trend);
+                if (trendStrength > 10) {
+                    trendElement.innerHTML += ' <span class="trend-strength">🔥</span>';
+                } else if (trendStrength > 5) {
+                    trendElement.innerHTML += ' <span class="trend-strength">⚡</span>';
+                }
+            }
+            
+            // Add region-specific insights
+            const regionInsight = card.querySelector('.region-insight');
+            if (!regionInsight) {
+                const insightDiv = document.createElement('div');
+                insightDiv.className = 'region-insight';
+                insightDiv.innerHTML = `
+                    <small class="insight-text">
+                        ${this.getRegionInsight(regionName, cropData)}
+                    </small>
+                `;
+                card.appendChild(insightDiv);
+            } else {
+                regionInsight.innerHTML = `
+                    <small class="insight-text">
+                        ${this.getRegionInsight(regionName, cropData)}
+                    </small>
+                `;
             }
         });
     }
     
     generateCropData(selectedCrop, selectedRegion, regionName) {
+        // Enhanced crop data with more realistic variations
         const crops = ['Wheat', 'Rice', 'Cotton', 'Sugarcane', 'Maize', 'Pulses'];
-        const prices = [1800, 1600, 5800, 3000, 1400, 2200];
-        const trends = [8, 5, 12, -2, 6, 3];
+        const basePrices = {
+            'wheat': 2000, 'rice': 1800, 'cotton': 6000, 
+            'sugarcane': 3200, 'maize': 1500, 'pulses': 2200
+        };
+        const baseTrends = {
+            'wheat': 8, 'rice': 5, 'cotton': 12, 
+            'sugarcane': -2, 'maize': 6, 'pulses': 3
+        };
         
-        // Generate realistic variations
-        const basePrice = prices[crops.indexOf(selectedCrop)] || 2000;
-        const baseTrend = trends[crops.indexOf(selectedCrop)] || 5;
+        // Get base values for selected crop
+        const basePrice = basePrices[selectedCrop.toLowerCase()] || 2000;
+        const baseTrend = baseTrends[selectedCrop.toLowerCase()] || 5;
         
+        // Get region multiplier
         const regionMultiplier = this.getRegionMultiplier(selectedRegion);
-        const priceVariation = (Math.random() - 0.5) * 0.2; // ±10%
-        const trendVariation = (Math.random() - 0.5) * 0.4; // ±20%
+        
+        // Generate realistic variations based on current market conditions
+        const currentTime = new Date();
+        const monthFactor = Math.sin((currentTime.getMonth() / 11) * Math.PI) * 0.15; // Seasonal variation
+        const marketVolatility = (Math.random() - 0.5) * 0.25; // Market volatility
+        const regionSpecificFactor = (Math.random() - 0.5) * 0.1; // Region-specific factors
+        
+        // Calculate final price with all factors
+        const finalPrice = Math.round(
+            basePrice * 
+            regionMultiplier * 
+            (1 + monthFactor + marketVolatility + regionSpecificFactor)
+        );
+        
+        // Generate trend with market context
+        const trendVariation = (Math.random() - 0.5) * 0.6; // ±30% trend variation
+        const marketContextFactor = monthFactor * 0.5; // Seasonal influence on trend
+        const finalTrend = Math.round(baseTrend * (1 + trendVariation + marketContextFactor));
+        
+        // Select best crop for the region (not always the selected crop)
+        const regionBestCrops = {
+            'punjab': ['Wheat', 'Rice', 'Cotton'],
+            'haryana': ['Wheat', 'Rice', 'Sugarcane'],
+            'uttar-pradesh': ['Wheat', 'Rice', 'Sugarcane'],
+            'maharashtra': ['Cotton', 'Sugarcane', 'Rice'],
+            'karnataka': ['Rice', 'Cotton', 'Maize'],
+            'tamil-nadu': ['Rice', 'Cotton', 'Sugarcane'],
+            'gujarat': ['Cotton', 'Wheat', 'Groundnut'],
+            'west-bengal': ['Rice', 'Jute', 'Tea'],
+            'bihar': ['Rice', 'Wheat', 'Maize'],
+            'rajasthan': ['Wheat', 'Cotton', 'Pulses']
+        };
+        
+        const bestCrops = regionBestCrops[selectedRegion.toLowerCase()] || crops;
+        const bestCrop = bestCrops[Math.floor(Math.random() * bestCrops.length)];
         
         return {
-            crop: selectedCrop || crops[Math.floor(Math.random() * crops.length)],
-            price: Math.round(basePrice * regionMultiplier * (1 + priceVariation)),
-            trend: Math.round(baseTrend * (1 + trendVariation))
+            crop: selectedCrop || bestCrop,
+            price: finalPrice,
+            trend: finalTrend,
+            region: selectedRegion,
+            isBestForRegion: bestCrop === selectedCrop
         };
     }
     
     getRegionMultiplier(region) {
         const multipliers = {
-            'punjab': 1.2,
-            'haryana': 1.1,
-            'uttar-pradesh': 1.0,
-            'maharashtra': 1.15,
-            'karnataka': 0.95,
-            'tamil-nadu': 0.9,
-            'gujarat': 1.05,
-            'west-bengal': 0.85
+            'punjab': 1.25, 'haryana': 1.20, 'uttar-pradesh': 1.15,
+            'maharashtra': 1.10, 'karnataka': 0.95, 'tamil-nadu': 0.90,
+            'gujarat': 1.05, 'west-bengal': 0.85, 'bihar': 0.95,
+            'rajasthan': 1.00, 'madhya-pradesh': 0.98, 'andhra-pradesh': 0.92
         };
         return multipliers[region] || 1.0;
+    }
+    
+    // Get region-specific insights
+    getRegionInsight(regionName, cropData) {
+        const insights = {
+            'punjab': 'High productivity region with excellent irrigation',
+            'haryana': 'Modern farming practices, good market access',
+            'uttar-pradesh': 'Large agricultural state, diverse crops',
+            'maharashtra': 'Leading cotton producer, good export facilities',
+            'karnataka': 'Diverse climate, multiple cropping seasons',
+            'tamil-nadu': 'Coastal region, good for rice cultivation',
+            'gujarat': 'Major cotton and groundnut producer',
+            'west-bengal': 'Rice bowl of India, high rainfall',
+            'bihar': 'Fertile plains, good for rice and wheat',
+            'rajasthan': 'Arid region, suitable for drought-resistant crops',
+            'madhya-pradesh': 'Central India, mixed farming practices',
+            'andhra-pradesh': 'Coastal plains, good for rice and cotton'
+        };
+        
+        const baseInsight = insights[regionName] || 'Agricultural region with mixed farming';
+        
+        // Add crop-specific insights
+        if (cropData.isBestForRegion) {
+            return `${baseInsight} - ${cropData.crop} is optimal for this region!`;
+        } else {
+            return `${baseInsight} - Consider ${cropData.crop} for better yields.`;
+        }
     }
     
     updateBestCropsRanking() {
@@ -2464,32 +2576,45 @@ class KisanAI {
     
 
     
-    // Get chart data from ChatGPT API or fallback
+    // Get dynamic chart data with realistic variations
     async getChartData() {
         try {
-            // Try to get real-time data from ChatGPT API
-            const response = await fetch('/api/ai/market-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    request: 'Get current crop prices for wheat, rice, cotton, and sugarcane for the last 6 months in India'
-                })
-            });
+            // Get user's selected crop and location for personalized data
+            const cropSelect = document.getElementById('crop-select');
+            const locationInput = document.getElementById('location-input');
             
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.marketData) {
-                    console.log('✅ Real-time market data received from ChatGPT API');
-                    return this.formatMarketDataForChart(data.marketData);
+            const selectedCrop = cropSelect ? cropSelect.value : 'wheat';
+            const selectedLocation = locationInput ? locationInput.value.trim() : 'india';
+            
+            // Try to get real-time data from ChatGPT API first
+            try {
+                const response = await fetch('/api/ai/market-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request: `Get current crop prices for ${selectedCrop}, rice, cotton, and sugarcane for the last 6 months in ${selectedLocation} with realistic market variations`
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.marketData) {
+                        console.log('✅ Real-time market data received from ChatGPT API');
+                        return this.formatMarketDataForChart(data.marketData, selectedCrop, selectedLocation);
+                    }
                 }
+            } catch (error) {
+                console.warn('ChatGPT API call failed, using dynamic fallback data:', error);
             }
+            
+            // Generate dynamic fallback data with realistic variations
+            console.log('📊 Generating dynamic market data for', selectedCrop, 'in', selectedLocation);
+            return this.generateDynamicChartData(selectedCrop, selectedLocation);
+            
         } catch (error) {
-            console.warn('ChatGPT API call failed, using fallback data:', error);
+            console.error('Error getting chart data:', error);
+            return this.generateDynamicChartData('wheat', 'india');
         }
-        
-        // Fallback to realistic sample data
-        console.log('📊 Using fallback market data');
-        return this.getFallbackChartData();
     }
     
     // Format ChatGPT API response for chart
@@ -2567,52 +2692,113 @@ class KisanAI {
         }
     }
     
-        // Fallback chart data
-    getFallbackChartData() {
+    // Generate dynamic chart data with realistic variations
+    generateDynamicChartData(selectedCrop, selectedLocation) {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        const wheatPrices = [1850, 1920, 1980, 2050, 2120, 2150];
-        const ricePrices = [1650, 1720, 1780, 1820, 1830, 1850];
-        const cottonPrices = [5800, 5900, 6000, 6100, 6300, 6500];
-        const sugarcanePrices = [3000, 3050, 3100, 3150, 3180, 3200];
         
-        console.log('📊 Using fallback chart data');
+        // Base prices for different crops (per quintal)
+        const basePrices = {
+            'wheat': { base: 2000, volatility: 0.15, trend: 0.08 },
+            'rice': { base: 1800, volatility: 0.12, trend: 0.06 },
+            'cotton': { base: 6000, volatility: 0.20, trend: 0.12 },
+            'sugarcane': { base: 3200, volatility: 0.10, trend: 0.05 },
+            'maize': { base: 1500, volatility: 0.18, trend: 0.09 },
+            'pulses': { base: 2200, volatility: 0.16, trend: 0.07 }
+        };
+        
+        // Location multipliers for regional price variations
+        const locationMultipliers = {
+            'punjab': 1.25, 'haryana': 1.20, 'uttar-pradesh': 1.15,
+            'maharashtra': 1.10, 'karnataka': 0.95, 'tamil-nadu': 0.90,
+            'gujarat': 1.05, 'west-bengal': 0.85, 'bihar': 0.95,
+            'rajasthan': 1.00, 'madhya-pradesh': 0.98, 'andhra-pradesh': 0.92
+        };
+        
+        const locationMultiplier = locationMultipliers[selectedLocation.toLowerCase()] || 1.0;
+        
+        // Generate dynamic prices for each crop
+        const generateCropPrices = (cropName) => {
+            const cropData = basePrices[cropName] || basePrices['wheat'];
+            const prices = [];
+            let currentPrice = cropData.base * locationMultiplier;
+            
+            for (let i = 0; i < 6; i++) {
+                // Add monthly trend
+                const trendFactor = 1 + (cropData.trend * (i / 5));
+                
+                // Add random volatility
+                const volatilityFactor = 1 + (Math.random() - 0.5) * cropData.volatility;
+                
+                // Add seasonal variations (higher prices in harvest months)
+                const seasonalFactor = 1 + Math.sin((i / 5) * Math.PI) * 0.1;
+                
+                const finalPrice = Math.round(currentPrice * trendFactor * volatilityFactor * seasonalFactor);
+                prices.push(finalPrice);
+                
+                // Update current price for next iteration
+                currentPrice = finalPrice;
+            }
+            
+            return prices;
+        };
+        
+        // Generate prices for all crops
+        const wheatPrices = generateCropPrices('wheat');
+        const ricePrices = generateCropPrices('rice');
+        const cottonPrices = generateCropPrices('cotton');
+        const sugarcanePrices = generateCropPrices('sugarcane');
+        
+        // Highlight the selected crop with special styling
+        const getCropStyle = (cropName) => {
+            const isSelected = cropName.toLowerCase() === selectedCrop.toLowerCase();
+            const colors = {
+                'wheat': { border: '#10B981', background: 'rgba(16, 185, 129, 0.1)' },
+                'rice': { border: '#3B82F6', background: 'rgba(59, 130, 246, 0.1)' },
+                'cotton': { border: '#F59E0B', background: 'rgba(245, 158, 11, 0.1)' },
+                'sugarcane': { border: '#8B5CF6', background: 'rgba(139, 92, 246, 0.1)' }
+            };
+            
+            const style = colors[cropName.toLowerCase()] || colors['wheat'];
+            return {
+                ...style,
+                borderWidth: isSelected ? 4 : 3,
+                borderDash: isSelected ? [5, 5] : [],
+                pointRadius: isSelected ? 8 : 6
+            };
+        };
+        
+        console.log('📊 Generated dynamic market data for', selectedCrop, 'in', selectedLocation);
+        console.log('📍 Location multiplier:', locationMultiplier);
+        console.log('🌾 Selected crop prices:', wheatPrices);
         
         return {
             labels: months,
             datasets: [
                 {
-                    label: 'Wheat (₹/qtl)',
+                    label: `Wheat (₹/qtl) ${selectedCrop.toLowerCase() === 'wheat' ? '⭐' : ''}`,
                     data: wheatPrices,
-                    borderColor: '#10B981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 3,
+                    ...getCropStyle('wheat'),
                     fill: true,
                     tension: 0.4
                 },
                 {
-                    label: 'Rice (₹/qtl)',
+                    label: `Rice (₹/qtl) ${selectedCrop.toLowerCase() === 'rice' ? '⭐' : ''}`,
                     data: ricePrices,
-                    borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 3,
+                    ...getCropStyle('rice'),
                     fill: true,
                     tension: 0.4
                 },
                 {
-                    label: 'Cotton (₹/qtl)',
+                    label: `Cotton (₹/qtl) ${selectedCrop.toLowerCase() === 'cotton' ? '⭐' : ''}`,
                     data: cottonPrices,
-                    borderColor: '#F59E0B',
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                    borderWidth: 3,
+                    ...getCropStyle('cotton'),
                     fill: true,
                     tension: 0.4
                 },
                 {
-                    label: 'Sugarcane (₹/qtl)',
+                    label: `Sugarcane (₹/qtl) ${selectedCrop.toLowerCase() === 'sugarcane' ? '⭐' : ''}`,
                     data: sugarcanePrices,
-                    borderColor: '#8B5CF6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    borderWidth: 3,
+                    ...getCropStyle('sugarcane'),
                     fill: true,
                     tension: 0.4
                 }

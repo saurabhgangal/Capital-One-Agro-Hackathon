@@ -2747,6 +2747,138 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+
+/* Market Intelligence Indicators and Insights */
+.best-crop-indicator {
+    color: #FFD700;
+    font-size: 0.8em;
+    margin-left: 4px;
+    animation: twinkle 1.5s infinite;
+}
+
+.trend-strength {
+    margin-left: 4px;
+    font-size: 0.8em;
+}
+
+.trend.up .trend-strength {
+    color: #10B981;
+}
+
+.trend.down .trend-strength {
+    color: #EF4444;
+}
+
+.region-insight {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.insight-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+/* Price Range Indicators */
+.price.high-price {
+    color: #EF4444;
+    font-weight: 700;
+}
+
+.price.medium-price {
+    color: #F59E0B;
+    font-weight: 600;
+}
+
+.price.low-price {
+    color: #10B981;
+    font-weight: 600;
+}
+
+/* Chart Enhancements */
+.chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+/* Regional Analysis Cards */
+.region-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.region-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+}
+
+.region-card h6 {
+    color: var(--primary-color);
+    margin-bottom: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.crop-performance {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.crop-performance .crop {
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.crop-performance .price {
+    font-size: 0.9rem;
+    color: #E5E7EB;
+}
+
+.crop-performance .trend {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.trend.up {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.trend.down {
+    background: rgba(239, 68, 68, 0.2);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Animations */
+@keyframes twinkle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
     box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
     position: relative;
     overflow: hidden;
