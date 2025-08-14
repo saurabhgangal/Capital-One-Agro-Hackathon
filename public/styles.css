@@ -168,7 +168,6 @@ body {
 .loading-icon {
     font-size: 4rem;
     margin-bottom: var(--spacing-6);
-    animation: float 3s ease-in-out infinite;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
 }
 
@@ -310,7 +309,6 @@ body {
 
 .logo-icon {
     font-size: 2.5rem;
-    animation: float 4s ease-in-out infinite;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
     color: var(--text-accent);
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
