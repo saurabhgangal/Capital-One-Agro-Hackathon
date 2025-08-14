@@ -329,6 +329,14 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
+    animation: float 4s ease-in-out infinite;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logo-text:hover {
+    transform: scale(1.05);
+    color: var(--text-accent);
 }
 
 /* Online Status Symbol */
