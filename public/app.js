@@ -39,6 +39,9 @@ class KisanAI {
         console.log('🔍 Debug: Checking app state...');
         this.debugAppStatus();
         
+        // Initialize default location
+        this.initializeDefaultLocation();
+        
         // Test basic navigation
         setTimeout(() => {
             this.testBasicNavigation();
@@ -3188,14 +3191,21 @@ class KisanAI {
     async getWeatherIntelligence() {
         try {
             const locationInput = document.getElementById('ai-location');
-            const location = locationInput ? locationInput.value.trim() : 'India';
+            let location = locationInput ? locationInput.value.trim() : '';
             
+            // Set default location to Delhi if no location is provided
             if (!location) {
-                this.showNotification('⚠️ Please enter your location for weather analysis!', 'warning');
-                return;
+                location = 'Delhi';
+                if (locationInput) {
+                    locationInput.value = location;
+                }
+                this.showNotification('🌤️ Using default location: Delhi', 'info');
             }
             
-            this.showNotification('🌤️ Fetching real-time weather data from IMD...', 'info');
+            // Update the weather location display
+            this.updateWeatherLocationDisplay(location);
+            
+            this.showNotification(`🌤️ Fetching real-time weather data from IMD for ${location}...`, 'info');
             
             // Try to get IMD weather data first
             const imdData = await this.getIMDWeatherData(location);
@@ -3213,6 +3223,14 @@ class KisanAI {
         } catch (error) {
             console.error('Weather analysis error:', error);
             this.showNotification('❌ Weather analysis failed. Please try again.', 'error');
+        }
+    }
+    
+    // Update weather location display
+    updateWeatherLocationDisplay(location) {
+        const weatherLocation = document.getElementById('weather-location');
+        if (weatherLocation) {
+            weatherLocation.textContent = `${location}, India`;
         }
     }
     
@@ -3673,6 +3691,16 @@ class WhatsAppManager {
         this.setupEventListeners();
         this.startStatusPolling();
         this.initializeBackgroundVideos();
+        this.initializeDefaultLocation();
+    }
+    
+    // Initialize default location
+    initializeDefaultLocation() {
+        const locationInput = document.getElementById('ai-location');
+        if (locationInput && !locationInput.value.trim()) {
+            locationInput.value = 'Delhi';
+            this.updateWeatherLocationDisplay('Delhi');
+        }
     }
 
     setupEventListeners() {
@@ -3693,6 +3721,30 @@ class WhatsAppManager {
 
         // Initialize WhatsApp when irrigation section is shown
         this.initializeWhatsApp();
+        
+        // Add location input event listener
+        this.setupLocationInputListener();
+    }
+    
+    // Setup location input listener
+    setupLocationInputListener() {
+        const locationInput = document.getElementById('ai-location');
+        if (locationInput) {
+            // Update location display when user types
+            locationInput.addEventListener('input', (e) => {
+                const location = e.target.value.trim();
+                if (location) {
+                    this.updateWeatherLocationDisplay(location);
+                }
+            });
+            
+            // Update location display when user presses Enter
+            locationInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.getWeatherIntelligence();
+                }
+            });
+        }
     }
 
     // Initialize background videos with fallbacks

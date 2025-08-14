@@ -137,10 +137,22 @@
                     <!-- Advanced Weather Intelligence -->
                     <div class="weather-widget">
                         <h3><i class="fas fa-satellite"></i> Weather Intelligence</h3>
+                        
+                        <!-- Location Selector -->
+                        <div class="location-selector">
+                            <label for="ai-location">📍 Location:</label>
+                            <div class="location-input-group">
+                                <input type="text" id="ai-location" placeholder="Enter your location..." value="Delhi" class="location-input">
+                                <button type="button" class="location-btn" onclick="kisanAI.getWeatherIntelligence()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div class="weather-content">
                             <div class="weather-icon">🌦️</div>
                             <div class="weather-info">
-                                <h4>Delhi, India</h4>
+                                <h4 id="weather-location">Delhi, India</h4>
                                 <p class="temperature">32°C</p>
                                 <p class="condition">Optimal for spraying</p>
                                 <div class="weather-alerts">

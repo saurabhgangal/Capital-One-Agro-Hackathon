@@ -4662,3 +4662,102 @@ body {
         padding: var(--spacing-3);
     }
 }
+
+/* Location Selector Styles */
+.location-selector {
+    margin-bottom: var(--spacing-3);
+    padding: var(--spacing-3);
+    background: var(--background);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.location-selector label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.location-input-group {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+}
+
+.location-input {
+    flex: 1;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.location-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+}
+
+.location-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.location-btn {
+    padding: var(--spacing-2) var(--spacing-3);
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.location-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.location-btn:active {
+    transform: translateY(0);
+}
+
+/* Update weather widget to accommodate location selector */
+.weather-widget {
+    position: relative;
+    overflow: visible;
+}
+
+.weather-widget .weather-content {
+    margin-top: var(--spacing-2);
+}
+
+/* Responsive design for location selector */
+@media (max-width: 768px) {
+    .location-selector {
+        padding: var(--spacing-2);
+    }
+    
+    .location-input-group {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+    
+    .location-input {
+        width: 100%;
+    }
+    
+    .location-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
