@@ -306,6 +306,112 @@ Provide a helpful, informative response that guides the farmer to the right sche
   }
 });
 
+// MyScheme API Integration
+router.post('/myscheme', async (req, res) => {
+    try {
+        const { query, userProfile, apiType } = req.body;
+        
+        if (!query) {
+            return res.status(400).json({
+                success: false,
+                error: 'Query is required'
+            });
+        }
+        
+        console.log(`🏛️ MyScheme API request for: ${query}`);
+        
+        // TODO: Replace with actual MyScheme API integration
+        // You'll need to get API key from: https://directory.apisetu.gov.in/api-collection/myscheme
+        
+        // Generate realistic mock scheme data based on query
+        const mockSchemeData = generateMockSchemeData(query, userProfile);
+        
+        console.log('✅ Mock MyScheme data generated');
+        
+        res.json({
+            success: true,
+            schemeData: mockSchemeData,
+            source: 'MyScheme API (Mock)',
+            query: query,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('MyScheme API error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch MyScheme data',
+            details: error.message
+        });
+    }
+});
+
+// Generate mock scheme data based on query
+function generateMockSchemeData(query, userProfile) {
+    const queryLower = query.toLowerCase();
+    
+    // Define scheme categories
+    const schemeCategories = {
+        'loan': ['Kisan Credit Card', 'PM Fasal Bima Yojana', 'Agricultural Infrastructure Fund'],
+        'subsidy': ['PM Kisan Samman Nidhi', 'Soil Health Card', 'PMKSY'],
+        'insurance': ['PM Fasal Bima Yojana', 'Livestock Insurance', 'Weather-based Crop Insurance'],
+        'irrigation': ['PMKSY', 'Har Khet Ko Pani', 'Per Drop More Crop'],
+        'technology': ['PM Kisan', 'Kisan Suvidha App', 'eNAM Platform'],
+        'education': ['Kisan Call Centers', 'Farmer Training Programs', 'Agricultural Universities']
+    };
+    
+    // Determine category from query
+    let category = 'loan'; // default
+    for (const [key, schemes] of Object.entries(schemeCategories)) {
+        if (queryLower.includes(key)) {
+            category = key;
+            break;
+        }
+    }
+    
+    // Generate relevant schemes
+    const relevantSchemes = schemeCategories[category] || schemeCategories['loan'];
+    const selectedSchemes = relevantSchemes.slice(0, 2); // Get 2 most relevant
+    
+    const schemes = selectedSchemes.map(schemeName => ({
+        name: schemeName,
+        description: `Government scheme for ${category} support`,
+        eligibility: 'All farmers registered with government',
+        benefits: 'Financial assistance and support services',
+        applicationProcess: 'Apply through nearest government office or online portal',
+        contact: 'Contact local agriculture department',
+        website: 'https://www.myscheme.gov.in'
+    }));
+    
+    // Generate financial options
+    const financialOptions = [
+        {
+            name: 'Kisan Credit Card',
+            type: 'Credit Facility',
+            amount: '₹50,000 - ₹5,00,000',
+            interestRate: '7% per annum',
+            features: 'Easy credit access, flexible repayment, low interest',
+            contact: 'Contact nearest bank branch'
+        },
+        {
+            name: 'PM Fasal Bima Yojana',
+            type: 'Crop Insurance',
+            amount: 'Premium: ₹1 - ₹2 per hectare',
+            interestRate: 'N/A',
+            features: 'Comprehensive crop insurance, government support',
+            contact: 'Contact insurance companies or banks'
+        }
+    ];
+    
+    return {
+        schemes: schemes,
+        financialOptions: financialOptions,
+        category: category,
+        totalSchemes: schemes.length,
+        totalFinancialOptions: financialOptions.length
+    };
+}
+
 // Get all available schemes
 router.get('/all-schemes', async (req, res) => {
   try {

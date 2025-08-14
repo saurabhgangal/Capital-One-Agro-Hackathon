@@ -4191,3 +4191,474 @@ body {
         background: rgba(15, 23, 42, 0.98);
     }
 }
+
+/* Government API Components */
+
+/* Weather Modal */
+.weather-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.weather-modal-content {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2xl);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid var(--border);
+    position: relative;
+}
+
+.weather-modal-header {
+    background: var(--gradient-primary);
+    color: white;
+    padding: var(--spacing-6);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weather-modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.weather-modal-body {
+    padding: var(--spacing-6);
+}
+
+.weather-current,
+.weather-forecast,
+.weather-recommendations {
+    margin-bottom: var(--spacing-6);
+}
+
+.weather-current h4,
+.weather-forecast h4,
+.weather-recommendations h4 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-3);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: var(--spacing-2);
+}
+
+.forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-3);
+}
+
+.forecast-day {
+    background: var(--background);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.forecast-date {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+}
+
+.forecast-temp {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: var(--spacing-1);
+}
+
+.forecast-condition {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* ENAM Market Analysis */
+.enam-analysis {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    border: 2px solid var(--border);
+    box-shadow: var(--shadow-lg);
+}
+
+.analysis-header {
+    text-align: center;
+    margin-bottom: var(--spacing-6);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 2px solid var(--accent);
+}
+
+.analysis-header h4 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-2);
+}
+
+.analysis-header p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-1);
+}
+
+.market-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.summary-card {
+    background: var(--background);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.summary-card h5 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+}
+
+.price-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.trend-display {
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-1);
+}
+
+.trend-display.up {
+    color: #4CAF50;
+}
+
+.trend-display.down {
+    color: #f44336;
+}
+
+.supply-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.market-details {
+    background: var(--background);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-6);
+    border: 1px solid var(--border);
+}
+
+.market-details h5 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: var(--spacing-2);
+}
+
+.market-details p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2);
+    display: flex;
+    justify-content: space-between;
+}
+
+.market-details strong {
+    color: var(--text-primary);
+}
+
+.market-recommendations {
+    background: var(--gradient-accent);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--accent);
+}
+
+.market-recommendations h5 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-3);
+}
+
+.market-recommendations p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Enhanced Scheme Cards for MyScheme API */
+.scheme-card {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--background) 100%);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-3);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.scheme-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+}
+
+.scheme-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+}
+
+.scheme-card h5 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-2);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.scheme-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+}
+
+.scheme-content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.scheme-content p {
+    margin-bottom: var(--spacing-2);
+}
+
+.scheme-content strong {
+    color: var(--text-primary);
+}
+
+.scheme-link {
+    display: inline-block;
+    background: var(--gradient-accent);
+    color: white;
+    text-decoration: none;
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    margin-top: var(--spacing-3);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.scheme-link:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Financial Options Cards */
+.financial-card {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--background) 100%);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-3);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.financial-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-accent);
+}
+
+.financial-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+}
+
+.financial-card h5 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-2);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.financial-card .type {
+    background: var(--gradient-accent);
+    color: white;
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.financial-card .amount {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: var(--spacing-2) 0;
+}
+
+.financial-card .interest-rate {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-2);
+}
+
+.financial-card .features {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-3);
+}
+
+.financial-card .contact {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design for Government API Components */
+@media (max-width: 768px) {
+    .weather-modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: var(--spacing-4);
+    }
+    
+    .weather-modal-header {
+        padding: var(--spacing-4);
+    }
+    
+    .weather-modal-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .weather-modal-body {
+        padding: var(--spacing-4);
+    }
+    
+    .forecast-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: var(--spacing-2);
+    }
+    
+    .market-summary {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-3);
+    }
+    
+    .enam-analysis {
+        padding: var(--spacing-4);
+    }
+    
+    .analysis-header h4 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .weather-modal-content {
+        margin: var(--spacing-2);
+        border-radius: var(--radius-lg);
+    }
+    
+    .weather-modal-header {
+        padding: var(--spacing-3);
+    }
+    
+    .weather-modal-body {
+        padding: var(--spacing-3);
+    }
+    
+    .forecast-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .enam-analysis {
+        padding: var(--spacing-3);
+    }
+    
+    .summary-card {
+        padding: var(--spacing-3);
+    }
+}

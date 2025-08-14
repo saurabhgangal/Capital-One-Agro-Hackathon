@@ -62,8 +62,9 @@ const creditRoutes = require('./src/routes/credit');
 const { router: whatsappRoutes } = require('./src/routes/whatsapp');
 const userRoutes = require('./src/routes/user');
 const irrigationRoutes = require('./src/routes/irrigation');
-        const customDataRoutes = require('./src/routes/custom-data');
-        const schemesRoutes = require('./src/routes/schemes');
+const customDataRoutes = require('./src/routes/custom-data');
+const schemesRoutes = require('./src/routes/schemes');
+const weatherRoutes = require('./src/routes/weather');
 
         // Routes
         app.use('/api/ai', aiRoutes);
@@ -74,6 +75,7 @@ const irrigationRoutes = require('./src/routes/irrigation');
         app.use('/api/irrigation', irrigationRoutes);
         app.use('/api/custom-data', customDataRoutes);
         app.use('/api/schemes', schemesRoutes);
+        app.use('/api/weather', weatherRoutes);
 
 // Socket.IO for real-time chat and notifications
 io.on('connection', (socket) => {

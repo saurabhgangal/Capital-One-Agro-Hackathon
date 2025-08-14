@@ -407,4 +407,122 @@ Include specific timing recommendations and risk mitigation strategies.`;
   }
 });
 
+// ENAM Market API Integration
+router.post('/enam', async (req, res) => {
+    try {
+        const { crop, location, apiType } = req.body;
+        
+        if (!crop || !location) {
+            return res.status(400).json({
+                success: false,
+                error: 'Crop and location are required'
+            });
+        }
+        
+        console.log(`📊 ENAM Market API request for: ${crop} in ${location}`);
+        
+        // TODO: Replace with actual ENAM AGRICOOP API integration
+        // You'll need to get API key from: https://directory.apisetu.gov.in/api-collection/agricoop
+        
+        // Generate realistic mock market data
+        const basePrices = {
+            'wheat': { min: 1800, max: 2200, volatility: 0.15 },
+            'rice': { min: 1600, max: 1900, volatility: 0.12 },
+            'cotton': { min: 5500, max: 6500, volatility: 0.20 },
+            'sugarcane': { min: 3000, max: 3500, volatility: 0.10 },
+            'maize': { min: 1400, max: 1700, volatility: 0.18 },
+            'pulses': { min: 2000, max: 2500, volatility: 0.16 }
+        };
+        
+        const cropData = basePrices[crop.toLowerCase()] || basePrices['wheat'];
+        const currentPrice = Math.round(cropData.min + Math.random() * (cropData.max - cropData.min));
+        const previousPrice = Math.round(currentPrice * (0.9 + Math.random() * 0.2)); // ±10% variation
+        const priceChange = ((currentPrice - previousPrice) / previousPrice) * 100;
+        
+        const mockMarketData = {
+            currentPrice: currentPrice,
+            previousPrice: previousPrice,
+            trend: priceChange > 0 ? 'up' : 'down',
+            trendPercentage: Math.abs(Math.round(priceChange * 10) / 10),
+            supplyStatus: ['Low Supply', 'Moderate Supply', 'High Supply'][Math.floor(Math.random() * 3)],
+            mandiName: `${location.charAt(0).toUpperCase() + location.slice(1)} Mandi`,
+            qualityGrade: ['A Grade', 'B Grade', 'C Grade'][Math.floor(Math.random() * 3)],
+            arrivalQuantity: Math.round(100 + Math.random() * 900), // 100-1000 qtl
+            lastUpdated: new Date().toISOString()
+        };
+        
+        console.log('✅ Mock ENAM market data generated');
+        
+        res.json({
+            success: true,
+            marketData: mockMarketData,
+            source: 'ENAM AGRICOOP API (Mock)',
+            crop: crop,
+            location: location,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('ENAM Market API error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch ENAM market data',
+            details: error.message
+        });
+    }
+});
+
+// Get market data by crop and location
+router.get('/:crop/:location', async (req, res) => {
+    try {
+        const { crop, location } = req.params;
+        
+        console.log(`📊 Market data request for: ${crop} in ${location}`);
+        
+        // TODO: Implement actual ENAM API call here
+        // const enamResponse = await fetch(`https://api.enam.gov.in/market/${crop}/${location}`, {
+        //     headers: { 'Authorization': `Bearer ${process.env.ENAM_API_KEY}` }
+        // });
+        
+        res.json({
+            success: true,
+            message: `Market data for ${crop} in ${location} (ENAM integration pending)`,
+            crop: crop,
+            location: location
+        });
+        
+    } catch (error) {
+        console.error('Market API error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch market data'
+        });
+    }
+});
+
+// Get all market data
+router.get('/', async (req, res) => {
+    try {
+        console.log('📊 All market data request');
+        
+        // TODO: Implement actual ENAM API call for all markets
+        // const enamResponse = await fetch('https://api.enam.gov.in/markets', {
+        //     headers: { 'Authorization': `Bearer ${process.env.ENAM_API_KEY}` }
+        // });
+        
+        res.json({
+            success: true,
+            message: 'All market data (ENAM integration pending)',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Market API error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch market data'
+        });
+    }
+});
+
 module.exports = router;
