@@ -1517,36 +1517,7 @@ class KisanAI {
         }
     }
 
-    async getWeatherIntelligence() {
-        try {
-            const locationInput = document.getElementById('ai-location');
-            const location = locationInput ? locationInput.value.trim() : 'India';
-            
-            if (!location) {
-                this.showNotification('⚠️ Please enter your location for weather analysis!', 'warning');
-                return;
-            }
-            
-            this.showNotification('🌤️ Fetching real-time weather data from IMD...', 'info');
-            
-            // Try to get IMD weather data first
-            const imdData = await this.getIMDWeatherData(location);
-            
-            if (imdData) {
-                // Use real IMD data
-                this.displayIMDWeatherAnalysis(imdData, location);
-            } else {
-                // Fallback to Google Weather
-                const weatherUrl = `https://www.google.com/search?q=weather+${encodeURIComponent(location)}`;
-                window.open(weatherUrl, '_blank');
-                this.showNotification('🌤️ Weather data opened in new tab!', 'success');
-            }
-            
-        } catch (error) {
-            console.error('Weather analysis error:', error);
-            this.showNotification('❌ Weather analysis failed. Please try again.', 'error');
-        }
-    }
+
 
     displayAdvancedAnalysis(title, content) {
         // Simple modal for now
